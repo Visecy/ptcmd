@@ -172,3 +172,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Debug file
+test.*
+disabled.*
+
+# vscode config
+.vscode/
+.VSCodeCounter/

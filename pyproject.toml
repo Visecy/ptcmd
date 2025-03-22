@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ptcmd"
+description = "A modern cmd library based on prompt_toolkit"
+license = { file = "LICENSE" }
+readme = "README.md"
+authors = [
+    { name="Visecy", email="Visecy@visecy.org" }
+]
+maintainers = [
+    { name="Ovizro", email="ovizro@visecy.org" }
+]
+dependencies = [
+    "prompt_toolkit>=3.0.0"
+]
+requires-python = ">=3.8"
+keywords = ["cmd", "interactive", "prompt", "Python"]
+dynamic = ["version", "urls"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/ptcmd/version.py"
+
+[tool.hatch.metadata.hooks.vcs.urls]
+Homepage = "https://github.com/Visecy/ptcmd"
+source_archive = "https://github.com/org/repo/archive/{commit_hash}.zip"
