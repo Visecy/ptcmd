@@ -180,3 +180,6 @@ disabled.*
 # vscode config
 .vscode/
 .VSCodeCounter/
+
+# version file
+/src/ptcmd/version.py
