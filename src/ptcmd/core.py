@@ -1,6 +1,8 @@
 import shlex
 from cmd import Cmd as _Cmd
-from typing import IO, Any, List, Optional, cast
+import textwrap
+from types import TracebackType
+from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -12,6 +14,8 @@ from . import constants
 
 
 class Cmd(_Cmd):
+    default_category = 'Uncategorized'
+
     def __init__(
         self,
         completekey: str = "tab",
@@ -22,7 +26,7 @@ class Cmd(_Cmd):
         self.console = console or Console(file=cast(IO[str], StdoutProxy(raw=True)))
         self.cmdqueue = []
         self.completekey = completekey
-    
+
     def cmdloop(self, intro: Optional[Any] = None) -> None:
         self.preloop()
         try:
@@ -36,74 +40,108 @@ class Cmd(_Cmd):
                     line = self.cmdqueue.pop(0)
                 else:
                     try:
-                        line = self.session.prompt(self.prompt, completer=WordCompleter(self.get_all_commands()))
+                        line = self.session.prompt(
+                            self.prompt,
+                            completer=WordCompleter(self.get_all_commands()),
+                        )
                     except KeyboardInterrupt:
-                        self.console.print("^C")
+                        # self.console.print("^C")
                         continue
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)
         finally:
             self.postloop()
-    
+
     def default(self, line: str) -> None:
-        self.console.print(f"[red]Unknown command: {line}[/red]")
-    
+        self.perror(f"Unknown command: {line}")
+
     def do_help(self, arg):
-        'List available commands with "help" or detailed help with "help cmd".'
-        if arg:
-            # XXX check arg syntax
+        """List available commands or provide detailed help for a specific command"""
+        if not arg:
+            return self._help_menu()
+        # XXX check arg syntax
+        try:
+            func = getattr(self, "help_" + arg)
+        except AttributeError:
             try:
-                func = getattr(self, 'help_' + arg)
+                doc = getattr(self, constants.COMMAND_FUNC_PREFIX + arg).__doc__
+                if doc:
+                    self.poutput(textwrap.dedent(doc))
+                    return
             except AttributeError:
-                try:
-                    doc=getattr(self, 'do_' + arg).__doc__
-                    if doc:
-                        self.stdout.write("%s\n"%str(doc))
-                        return
-                except AttributeError:
-                    pass
-                self.stdout.write("%s\n"%str(self.nohelp % (arg,)))
-                return
-            func()
+                pass
+            self.poutput(self.nohelp % (arg,))
+            return
+        func()
+    def _help_menu(self, verbose: bool = False) -> None:
+        """Show a list of commands which help can be displayed for"""
+        cmds_cats, cmds_doc, cmds_undoc, help_topics = self._build_command_info()
+
+        if not cmds_cats:
+            # No categories found, fall back to standard behavior
+            self.poutput(self.doc_leader)
+            self.print_topics(self.doc_header, cmds_doc, 15, 80)
         else:
-            names = self.get_names()
-            cmds_doc = []
-            cmds_undoc = []
-            help = {}
-            for name in names:
-                if name[:5] == 'help_':
-                    help[name[5:]]=1
-            names.sort()
-            # There can be duplicates if routines overridden
-            prevname = ''
-            for name in names:
-                if name[:3] == 'do_':
-                    if name == prevname:
-                        continue
-                    prevname = name
-                    cmd=name[3:]
-                    if cmd in help:
-                        cmds_doc.append(cmd)
-                        del help[cmd]
-                    elif getattr(self, name).__doc__:
-                        cmds_doc.append(cmd)
-                    else:
-                        cmds_undoc.append(cmd)
-            self.stdout.write("%s\n"%str(self.doc_leader))
-            self.print_topics(self.doc_header,   cmds_doc,   15,80)
-            self.print_topics(self.misc_header,  list(help.keys()),15,80)
-            self.print_topics(self.undoc_header, cmds_undoc, 15,80)
+            # Categories found, Organize all commands by category
+            self.poutput(self.doc_leader)
+            self.poutput(self.doc_header, end="\n\n")
+            for category in sorted(cmds_cats.keys()):
+                self.print_topics(category, cmds_cats[category], 15, 80)
+            self.print_topics(self.default_category, cmds_doc, 15, 80)
+
+        self.print_topics(self.misc_header, help_topics, 15, 80)
+        self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
+
+    def _build_command_info(self) -> Tuple[Dict[str, List[str]], List[str], List[str], List[str]]:
+        # Get a sorted list of help topics
+        help_topics = self.get_help_topics()
+        help_topics.sort()
+
+        # Get a sorted list of visible command names
+        visible_commands = self.get_visible_commands()
+        visible_commands.sort()
+
+        cmds_doc: List[str] = []
+        cmds_undoc: List[str] = []
+        cmds_cats: Dict[str, List[str]] = {}
+        for command in visible_commands:
+            func = cast(Callable, self.cmd_func(command))
+            has_help_func = has_parser = False
+
+            if command in help_topics:
+                # Prevent the command from showing as both a command and help topic in the output
+                help_topics.remove(command)
+
+                # Non-argparse commands can have help_functions for their documentation
+                has_help_func = not has_parser
+
+            if hasattr(func, constants.CMD_ATTR_HELP_CATEGORY):
+                category: str = getattr(func, constants.CMD_ATTR_HELP_CATEGORY)
+                cmds_cats.setdefault(category, [])
+                cmds_cats[category].append(command)
+            elif func.__doc__ or has_help_func or has_parser:
+                cmds_doc.append(command)
+            else:
+                cmds_undoc.append(command)
+        return cmds_cats, cmds_doc, cmds_undoc, help_topics
+    
+    def do_exit(self, line: str) -> bool:
+        self.poutput("Bye!")
+        return True
 
     def print_topics(self, header, cmds, cmdlen, maxcol):
-        if cmds:
-            self.stdout.write("%s\n"%str(header))
-            if self.ruler:
-                self.stdout.write("%s\n"%str(self.ruler * len(header)))
-            self.columnize(cmds, maxcol-1)
-            self.stdout.write("\n")
+        if not cmds:
+            return
+        self.poutput(header)
+        if self.ruler:
+            self.poutput(self.ruler * len(header))
+        self.columnize(cmds, maxcol - 1)
+        self.poutput("")
 
-    def columnize(self, list: Optional[List[str]], displaywidth: Optional[int] = None) -> None:
+    def columnize(
+        self, list: Optional[List[str]], displaywidth: Optional[int] = None
+    ) -> None:
         if list is None:
             self.console.print("<empty>")
             return
@@ -113,25 +151,82 @@ class Cmd(_Cmd):
                 width=displaywidth,
             )
         )
-    
+
+    def cmd_func(self, command: str) -> Optional[Callable]:
+        """
+        Get the function for a command
+
+        :param command: the name of the command
+
+        Example:
+
+        ```py
+        helpfunc = self.cmd_func('help')
+        ```
+
+        helpfunc now contains a reference to the ``do_help`` method
+        """
+        func_name = constants.COMMAND_FUNC_PREFIX + command
+        func = getattr(self, func_name, None)
+        return func if callable(func) else None
+
     def get_all_commands(self) -> List[str]:
         """Return a list of all commands"""
         return [
             name[len(constants.COMMAND_FUNC_PREFIX) :]
             for name in self.get_names()
-            if name.startswith(constants.COMMAND_FUNC_PREFIX) and callable(getattr(self, name))
+            if name.startswith(constants.COMMAND_FUNC_PREFIX)
+            and callable(getattr(self, name))
         ]
 
-    def poutput(self, *objs, sep: str = ' ', end: str = '\n') -> None:
+    def get_visible_commands(self) -> List[str]:
+        """Return a list of commands that have not been hidden or disabled"""
+        return [
+            command
+            for command in self.get_all_commands()
+            if not getattr(command, constants.CMD_ATTR_HIDDEN, None)
+            and not getattr(command, constants.CMD_ATTR_DISABLED, None)
+        ]
+
+    def get_help_topics(self) -> List[str]:
+        """Return a list of help topics"""
+        all_topics = [
+            name[len(constants.HELP_FUNC_PREFIX) :]
+            for name in self.get_names()
+            if name.startswith(constants.HELP_FUNC_PREFIX)
+            and callable(getattr(self, name))
+        ]
+
+        # Filter out hidden and disabled commands
+        return [
+            topic
+            for topic in all_topics
+            if not getattr(topic, constants.CMD_ATTR_HIDDEN, False)
+            and not getattr(topic, constants.CMD_ATTR_DISABLED, False)
+        ]
+
+    @property
+    def visible_prompt(self) -> str:
+        """Read-only property to get the visible prompt with any ANSI style escape codes stripped.
+
+        Used by transcript testing to make it easier and more reliable when users are doing things like coloring the
+        prompt using ANSI color codes.
+
+        :return: prompt stripped of any ANSI escape codes
+        """
+        return str(self.prompt)
+
+    def poutput(self, *objs, sep: str = " ", end: str = "\n") -> None:
         self.console.print(*objs, sep=sep, end=end)
-    
-    
 
-    # def get_visible_commands(self) -> List[str]:
-    #     """Return a list of commands that have not been hidden or disabled"""
-    #     return [
-    #         command
-    #         for command in self.get_all_commands()
-    #         if command not in self.hidden_commands and command not in self.disabled_commands
-    #     ]
+    def perror(self, *objs, sep: str = " ", end: str = "\n") -> None:
+        self.console.print(*objs, sep=sep, end=end, style="red bold")
 
+    def psuccess(self, *objs, sep: str = " ", end: str = "\n") -> None:
+        self.console.print(*objs, sep=sep, end=end, style="green bold")
+
+    def pwarning(self, *objs, sep: str = " ", end: str = "\n") -> None:
+        self.console.print(*objs, sep=sep, end=end, style="yellow bold")
+
+    def pexcept(self, *, show_locals: bool = False) -> None:
+        self.console.print_exception(show_locals=show_locals)
