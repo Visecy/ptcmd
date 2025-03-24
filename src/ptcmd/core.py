@@ -1,14 +1,15 @@
 import shlex
-from cmd import Cmd as _Cmd
 import textwrap
+from cmd import Cmd as _Cmd
 from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from prompt_toolkit import PromptSession
-from prompt_toolkit.formatted_text import to_formatted_text, ANSI
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.formatted_text import ANSI, HTML, FormattedText
 from prompt_toolkit.patch_stdout import StdoutProxy
-from rich.console import Console
 from rich.columns import Columns
+from rich.console import Console
+from rich.text import Text
 from rich.panel import Panel
 from rich.theme import Theme
 
@@ -17,21 +18,23 @@ from .theme import DEFAULT as DEFAULT_THEME
 
 
 class Cmd(_Cmd):
+    prompt: Any = Text.from_markup("([cmd.prompt]Cmd[/cmd.prompt]) ")
+
     default_category = "Uncategorized"
     doc_leader = ""
 
     def __init__(
         self,
-        completekey: str = "tab",
+        *,
         session: Optional[PromptSession] = None,
         console: Optional[Console] = None,
         theme: Optional[Theme] = None,
     ) -> None:
         self.cmdqueue = []
-        self.completekey = completekey
         self.theme = theme or DEFAULT_THEME
         self.session = session or PromptSession()
-        self.console = console or Console(file=cast(IO[str], StdoutProxy(raw=True)), theme=self.theme)
+        self.stdout = cast(IO[str], StdoutProxy(raw=True, sleep_between_writes=0.01))
+        self.console = console or Console(file=self.stdout, theme=self.theme)
 
     def cmdloop(self, intro: Optional[Any] = None) -> None:
         self.preloop()
@@ -45,11 +48,13 @@ class Cmd(_Cmd):
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
                 else:
-                    prompt = ANSI(self._render_rich_text(self.prompt))
+                    prompt = self._render_rich_text(self.prompt)
+                    if isinstance(prompt, str):
+                        prompt = ANSI(prompt)
                     try:
                         line = self.session.prompt(
                             prompt,
-                            completer=WordCompleter(self.get_all_commands()),
+                            completer=WordCompleter(self.get_visible_commands()),
                         )
                     except KeyboardInterrupt:
                         continue
@@ -234,9 +239,9 @@ class Cmd(_Cmd):
     def pexcept(self, *, show_locals: bool = False) -> None:
         self.console.print_exception(show_locals=show_locals)
     
-    def _render_rich_text(self, text: Any) -> str:
-        if isinstance(text, str):
+    def _render_rich_text(self, text: Any) -> Any:
+        if isinstance(text, (str, list, FormattedText, ANSI, HTML)):
             return text
-        console = Console(record=True, theme=self.theme)
-        console.print(text, end="")
-        return console.export_text()
+        with self.console.capture() as capture:
+            self.console.print(text, end="")
+        return capture.get()
