@@ -14,7 +14,8 @@ maintainers = [
     { name="Ovizro", email="ovizro@visecy.org" }
 ]
 dependencies = [
-    "prompt_toolkit>=3.0.0"
+    "prompt_toolkit>=3.0.0",
+    "rich>=13.0.0"
 ]
 requires-python = ">=3.8"
 keywords = ["cmd", "interactive", "prompt", "Python"]

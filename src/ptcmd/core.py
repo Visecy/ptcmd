@@ -1,31 +1,37 @@
 import shlex
 from cmd import Cmd as _Cmd
 import textwrap
-from types import TracebackType
 from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.formatted_text import to_formatted_text, ANSI
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import StdoutProxy
 from rich.console import Console
 from rich.columns import Columns
+from rich.panel import Panel
+from rich.theme import Theme
 
 from . import constants
+from .theme import DEFAULT as DEFAULT_THEME
 
 
 class Cmd(_Cmd):
-    default_category = 'Uncategorized'
+    default_category = "Uncategorized"
+    doc_leader = ""
 
     def __init__(
         self,
         completekey: str = "tab",
         session: Optional[PromptSession] = None,
         console: Optional[Console] = None,
+        theme: Optional[Theme] = None,
     ) -> None:
-        self.session = session or PromptSession()
-        self.console = console or Console(file=cast(IO[str], StdoutProxy(raw=True)))
         self.cmdqueue = []
         self.completekey = completekey
+        self.theme = theme or DEFAULT_THEME
+        self.session = session or PromptSession()
+        self.console = console or Console(file=cast(IO[str], StdoutProxy(raw=True)), theme=self.theme)
 
     def cmdloop(self, intro: Optional[Any] = None) -> None:
         self.preloop()
@@ -39,13 +45,13 @@ class Cmd(_Cmd):
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
                 else:
+                    prompt = ANSI(self._render_rich_text(self.prompt))
                     try:
                         line = self.session.prompt(
-                            self.prompt,
+                            prompt,
                             completer=WordCompleter(self.get_all_commands()),
                         )
                     except KeyboardInterrupt:
-                        # self.console.print("^C")
                         continue
                 line = self.precmd(line)
                 stop = self.onecmd(line)
@@ -62,7 +68,7 @@ class Cmd(_Cmd):
             return self._help_menu()
         # XXX check arg syntax
         try:
-            func = getattr(self, "help_" + arg)
+            func = getattr(self, constants.HELP_FUNC_PREFIX + arg)
         except AttributeError:
             try:
                 doc = getattr(self, constants.COMMAND_FUNC_PREFIX + arg).__doc__
@@ -74,6 +80,7 @@ class Cmd(_Cmd):
             self.poutput(self.nohelp % (arg,))
             return
         func()
+
     def _help_menu(self, verbose: bool = False) -> None:
         """Show a list of commands which help can be displayed for"""
         cmds_cats, cmds_doc, cmds_undoc, help_topics = self._build_command_info()
@@ -81,17 +88,17 @@ class Cmd(_Cmd):
         if not cmds_cats:
             # No categories found, fall back to standard behavior
             self.poutput(self.doc_leader)
-            self.print_topics(self.doc_header, cmds_doc, 15, 80)
+            self.print_topics(self.doc_header, cmds_doc)
         else:
             # Categories found, Organize all commands by category
             self.poutput(self.doc_leader)
             self.poutput(self.doc_header, end="\n\n")
             for category in sorted(cmds_cats.keys()):
-                self.print_topics(category, cmds_cats[category], 15, 80)
-            self.print_topics(self.default_category, cmds_doc, 15, 80)
+                self.print_topics(category, cmds_cats[category])
+            self.print_topics(self.default_category, cmds_doc)
 
-        self.print_topics(self.misc_header, help_topics, 15, 80)
-        self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
+        self.print_topics(self.misc_header, help_topics)
+        self.print_topics(self.undoc_header, cmds_undoc)
 
     def _build_command_info(self) -> Tuple[Dict[str, List[str]], List[str], List[str], List[str]]:
         # Get a sorted list of help topics
@@ -125,23 +132,22 @@ class Cmd(_Cmd):
             else:
                 cmds_undoc.append(command)
         return cmds_cats, cmds_doc, cmds_undoc, help_topics
-    
+
     def do_exit(self, line: str) -> bool:
         self.poutput("Bye!")
         return True
 
-    def print_topics(self, header, cmds, cmdlen, maxcol):
+    def print_topics(self, header: str, cmds: List[str], cmdlen: Optional[int] = None, maxcol: Optional[int] = None) -> None:
         if not cmds:
             return
-        self.poutput(header)
-        if self.ruler:
-            self.poutput(self.ruler * len(header))
-        self.columnize(cmds, maxcol - 1)
-        self.poutput("")
+        panel = Panel(
+            Columns(cmds, width=maxcol),
+            title=header,
+            title_align="left"
+        )
+        self.poutput(panel)
 
-    def columnize(
-        self, list: Optional[List[str]], displaywidth: Optional[int] = None
-    ) -> None:
+    def columnize(self, list: Optional[List[str]], displaywidth: Optional[int] = None) -> None:
         if list is None:
             self.console.print("<empty>")
             return
@@ -175,8 +181,7 @@ class Cmd(_Cmd):
         return [
             name[len(constants.COMMAND_FUNC_PREFIX) :]
             for name in self.get_names()
-            if name.startswith(constants.COMMAND_FUNC_PREFIX)
-            and callable(getattr(self, name))
+            if name.startswith(constants.COMMAND_FUNC_PREFIX) and callable(getattr(self, name))
         ]
 
     def get_visible_commands(self) -> List[str]:
@@ -193,16 +198,14 @@ class Cmd(_Cmd):
         all_topics = [
             name[len(constants.HELP_FUNC_PREFIX) :]
             for name in self.get_names()
-            if name.startswith(constants.HELP_FUNC_PREFIX)
-            and callable(getattr(self, name))
+            if name.startswith(constants.HELP_FUNC_PREFIX) and callable(getattr(self, name))
         ]
 
         # Filter out hidden and disabled commands
         return [
             topic
             for topic in all_topics
-            if not getattr(topic, constants.CMD_ATTR_HIDDEN, False)
-            and not getattr(topic, constants.CMD_ATTR_DISABLED, False)
+            if not getattr(topic, constants.CMD_ATTR_HIDDEN, False) and not getattr(topic, constants.CMD_ATTR_DISABLED, False)
         ]
 
     @property
@@ -220,13 +223,20 @@ class Cmd(_Cmd):
         self.console.print(*objs, sep=sep, end=end)
 
     def perror(self, *objs, sep: str = " ", end: str = "\n") -> None:
-        self.console.print(*objs, sep=sep, end=end, style="red bold")
+        self.console.log(*objs, sep=sep, end=end, style="cmd.error", _stack_offset=2)
 
     def psuccess(self, *objs, sep: str = " ", end: str = "\n") -> None:
-        self.console.print(*objs, sep=sep, end=end, style="green bold")
+        self.console.print(*objs, sep=sep, end=end, style="cmd.success")
 
     def pwarning(self, *objs, sep: str = " ", end: str = "\n") -> None:
-        self.console.print(*objs, sep=sep, end=end, style="yellow bold")
+        self.console.log(*objs, sep=sep, end=end, style="cmd.warning", _stack_offset=2)
 
     def pexcept(self, *, show_locals: bool = False) -> None:
         self.console.print_exception(show_locals=show_locals)
+    
+    def _render_rich_text(self, text: Any) -> str:
+        if isinstance(text, str):
+            return text
+        console = Console(record=True, theme=self.theme)
+        console.print(text, end="")
+        return console.export_text()
