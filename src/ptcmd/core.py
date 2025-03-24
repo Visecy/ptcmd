@@ -5,7 +5,7 @@ from typing import IO, Any, Callable, Dict, List, Optional, Tuple, Type, cast
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import to_formatted_text, ANSI
-from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import WordCompleter, Completer
 from prompt_toolkit.patch_stdout import StdoutProxy
 from rich.console import Console
 from rich.columns import Columns
@@ -14,6 +14,7 @@ from rich.theme import Theme
 
 from . import constants
 from .theme import DEFAULT as DEFAULT_THEME
+from .completer import ArgparseCompleter
 
 
 class Cmd(_Cmd):
@@ -137,7 +138,7 @@ class Cmd(_Cmd):
         self.poutput("Bye!")
         return True
 
-    def print_topics(self, header: str, cmds: List[str], cmdlen: Optional[int] = None, maxcol: Optional[int] = None) -> None:
+    def print_topics(self, header: str, cmds: Optional[List[str]], cmdlen: Optional[int] = None, maxcol: Optional[int] = None) -> None:
         if not cmds:
             return
         panel = Panel(
