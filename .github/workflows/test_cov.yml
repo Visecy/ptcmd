@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel
+        pip install setuptools wheel build
     - name: Run tests with coverage
       run: make develop test_with_coverage
     - name: Upload coverage data
@@ -35,48 +35,9 @@ jobs:
         path: .coverage.*
         include-hidden-files: true
 
-  online-test:
-    name: Test with Tinode Server
-    # if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-      - name: Set up docker
-        uses: docker/setup-docker-action@v4
-      - name: Set up tinode
-        run: |
-          docker compose -f tests/online/docker-compose.yaml up -d
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel
-      - name: Get tinode logs
-        run: |
-          docker logs tinode-srv -n 100
-      - name: Run online test with coverage
-        run: |
-          cp tests/online/online_test.json ./config.json
-          make develop test_online_with_coverage
-      - name: Upload chatbot logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: chatbot-logs
-          path: .bot/log/*
-          retention-days: 14
-      - name: Upload coverage data
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-data-online-py3.10
-          path: .coverage.*
-          include-hidden-files: true
-    
   upload-coverage:
     name: Upload coverage to Codecov
-    needs: [test, online-test]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -398,7 +398,7 @@ class Cmd(BaseCmd):
     __slots__ = []
 
     @auto_argument
-    def do_help(self, topic: str = '', *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:
+    def do_help(self, topic: str = '', *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821
         """List available commands or provide detailed help for a specific command.
         """
         if not topic:
@@ -406,7 +406,7 @@ class Cmd(BaseCmd):
         help_topics = self._help_topics()
 
         # XXX check arg syntax
-        if topic in help_topics and not topic in self.command_info:
+        if topic in help_topics and topic not in self.command_info:
             return self.poutput(self._format_help_menu(topic, help_topics[topic], verbose=verbose))
         elif topic not in self.command_info:
             return self.perror(f"Unknown command: {topic}")

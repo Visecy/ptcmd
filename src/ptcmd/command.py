@@ -9,7 +9,6 @@ from inspect import Parameter, signature
 import sys
 from types import MethodType
 from typing import TYPE_CHECKING, Callable, Generic, List, Literal, Optional, TypeVar, Union, overload
-from matplotlib.pylab import f
 from typing_extensions import ParamSpec
 
 from .info import CommandInfo
