@@ -1,7 +1,7 @@
 import argparse
-from collections import deque
 import shlex
-from typing import Dict, Generator, List, Any, Iterable, Union
+from collections import deque
+from typing import Any, Dict, Generator, Iterable, List, Union
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
@@ -19,7 +19,7 @@ class PrefixCompleter(Completer):
     The prefix and the subsequent content don't need to be separated by a space.
     """
     
-    def __init__(self, prefix: str, completer: Completer):
+    def __init__(self, prefix: str, completer: Completer) -> None:
         """
         Initialize the completer with a prefix and a nested completer.
 
@@ -100,7 +100,7 @@ class ArgparseCompleter(Completer):
         for quote in ('', '"', "'"):
             # Handle incomplete quoting
             try:
-                tokens = shlex.split(text + quote, posix=False)
+                tokens = shlex.split(text + quote, comments=False, posix=False)
             except ValueError:
                 continue
             else:
@@ -141,7 +141,23 @@ class ArgparseCompleter(Completer):
         tokens: List[str],
         start_position: int
     ) -> Generator[Completion, None, None]:
-        """Generator that yields completion texts one by one."""
+        """Generate completions by analyzing the command line state.
+
+        :param text: The text being completed (last token)
+        :type text: str
+        :param line: The full command line text
+        :type line: str
+        :param begidx: Beginning index of text in line
+        :type begidx: int
+        :param endidx: Ending index of text in line
+        :type endidx: int
+        :param tokens: List of parsed command tokens
+        :type tokens: List[str]
+        :param start_position: Start position for completions
+        :type start_position: int
+        :return: Generator yielding Completion objects
+        :rtype: Generator[Completion, None, None]
+        """
         remaining_positionals = deque(self._positional_actions)
         skip_remaining_flags = False
         pos_arg_state = None
@@ -316,7 +332,22 @@ class ArgparseCompleter(Completer):
         consumed_arg_values[arg_state.action.dest].append(token)
 
     class _ArgumentState:
-        """Track state of an argument being parsed."""
+        """Track state of an argument being parsed.
+        
+        This helper class tracks how many values have been consumed for an argument
+        and whether it's a remainder-type argument that consumes all remaining input.
+
+        :ivar action: The argparse Action being tracked
+        :vartype action: argparse.Action
+        :ivar min: Minimum number of values required
+        :vartype min: Union[int, str]
+        :ivar max: Maximum number of values allowed
+        :vartype max: Union[float, int, str] 
+        :ivar count: Number of values consumed so far
+        :vartype count: int
+        :ivar is_remainder: Whether this is a remainder argument
+        :vartype is_remainder: bool
+        """
         def __init__(self, arg_action: argparse.Action) -> None:
             self.action = arg_action
             self.min: Union[int, str]

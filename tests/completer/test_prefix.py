@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import Completer, Completion
