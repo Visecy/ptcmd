@@ -1,10 +1,9 @@
 from argparse import ArgumentParser
-from typing import Callable, Optional, TypeVar, Union, overload
+from typing import Literal, Optional, TypeVar, Union, overload, Callable
 
 from typing_extensions import ParamSpec
 
 from . import command, constants
-
 
 _T = TypeVar("_T")
 _P = ParamSpec("_P")
@@ -12,11 +11,13 @@ _P = ParamSpec("_P")
 
 @overload
 def auto_argument(
-        func: Callable[_P, _T],
-        *,
-        parser: Optional[ArgumentParser] = None,
-        hidden: bool = False,
-        disabled: bool = False
+    func: Callable[_P, _T],
+    *,
+    parser: Optional[ArgumentParser] = None,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
+    parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
+    hidden: bool = False,
+    disabled: bool = False,
 ) -> Callable[_P, _T]:
     """Decorator to convert a function into a command with automatic argument parsing.
 
@@ -36,11 +37,13 @@ def auto_argument(
 
 @overload
 def auto_argument(
-        func: Optional[str] = None,
-        *,
-        parser: Optional[ArgumentParser] = None,
-        hidden: bool = False,
-        disabled: bool = False
+    func: Optional[str] = None,
+    *,
+    parser: Optional[ArgumentParser] = None,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
+    parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
+    hidden: bool = False,
+    disabled: bool = False,
 ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
     """Decorator factory for auto_argument when called with parameters.
 
@@ -59,11 +62,13 @@ def auto_argument(
 
 
 def auto_argument(
-        func: Optional[Union[Callable[_P, _T], str]] = None,
-        *,
-        parser: Optional[ArgumentParser] = None,
-        hidden: bool = False,
-        disabled: bool = False
+    func: Union[Callable[_P, _T], str, None] = None,
+    *,
+    parser: Optional[ArgumentParser] = None,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
+    parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
+    hidden: bool = False,
+    disabled: bool = False,
 ) -> Union[Callable[_P, _T], Callable[[Callable[_P, _T]], Callable[_P, _T]]]:
     """Implementation of the auto_argument decorator.
 
@@ -82,13 +87,23 @@ def auto_argument(
     :rtype: Union[Callable[_P, _T], Callable[[Callable[_P, _T]], Callable[_P, _T]]]
     """
     name = func if isinstance(func, str) else None
+
     def wrapper(func: Callable[_P, _T]) -> Callable[_P, _T]:
         if name is not None:
             _name = name
         else:
             assert func.__name__.startswith(constants.COMMAND_FUNC_PREFIX), f"{func} is not a command function"
-            _name = func.__name__[len(constants.COMMAND_FUNC_PREFIX):]
-        return command.Command(_name, func, parser=parser, hidden=hidden, disabled=disabled)
+            _name = func.__name__[len(constants.COMMAND_FUNC_PREFIX) :]
+        return command.Command(
+            _name,
+            func,
+            parser=parser,
+            unannotated_mode=unannotated_mode,
+            parser_factory=parser_factory,
+            hidden=hidden,
+            disabled=disabled,
+        )
+
     if callable(func):
         return wrapper(func)
     else:

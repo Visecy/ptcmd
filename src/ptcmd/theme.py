@@ -6,7 +6,6 @@ command output (success, warning, error) and the prompt.
 
 from rich.theme import Theme
 
-
 DEFAULT_STYLE = {
     "cmd.success": "green",
     "cmd.warning": "yellow",

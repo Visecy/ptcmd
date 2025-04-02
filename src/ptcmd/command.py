@@ -4,16 +4,17 @@ This module provides the core functionality for creating and managing commands
 with automatic argument parsing and completion.
 """
 
+import sys
 from argparse import ArgumentParser
 from inspect import Parameter, signature
-import sys
 from types import MethodType
 from typing import TYPE_CHECKING, Callable, Generic, List, Literal, Optional, TypeVar, Union, overload
+
 from typing_extensions import ParamSpec
 
-from .info import CommandInfo
 from .argument import build_parser
 from .completer import ArgparseCompleter
+from .info import CommandInfo
 
 if TYPE_CHECKING:
     from .core import BaseCmd
@@ -25,7 +26,17 @@ _T = TypeVar("_T")
 
 class Command(Generic[_P, _T]):
     """Wrapper class that adds command metadata and argument parsing to a function.
+
+    This class serves as the core command implementation in ptcmd, providing:
+    - Automatic argument parsing from function signatures
+    - Command metadata (name, hidden status, disabled status)
+    - Argument completion support
+    - Method binding for instance commands
+
+    The Command class is typically created through the @command decorator rather
+    than being instantiated directly.
     """
+
     def __init__(
         self,
         name: str,
@@ -85,10 +96,10 @@ class Command(Generic[_P, _T]):
             else:
                 kwargs[param_name] = getattr(ns, param_name)
         return func(*args, **kwargs)  # type: ignore
-    
+
     @overload
     def __get__(self, instance: None, owner: Optional[type]) -> "Command[_P, _T]": ...
-    
+
     @overload
     def __get__(self, instance: object, owner: Optional[type]) -> Callable[_P, _T]: ...
 
@@ -96,7 +107,7 @@ class Command(Generic[_P, _T]):
         if instance is None:
             return self
         return self.__func__.__get__(instance, owner)
-    
+
     def __cmd_info__(self, cmd: "BaseCmd") -> CommandInfo:
         return CommandInfo(
             name=self.__name__,

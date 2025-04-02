@@ -1,24 +1,16 @@
 import warnings
-from argparse import Action
-from argparse import ArgumentParser
-from argparse import FileType
+from argparse import Action, ArgumentParser, FileType
 from inspect import Parameter, Signature, signature
-from typing import (TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping,
-                    Optional, Tuple, Type, TypeVar, Union)
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Tuple, Type, TypeVar, Union
 
-from typing_extensions import (Annotated, Self, get_args, get_origin,
-                               get_type_hints)
+from typing_extensions import Annotated, Self, get_args, get_origin, get_type_hints
 
 
 class Argument:
-    """
-    Represents a command-line argument to be added to an ArgumentParser.
+    """Represents a command-line argument to be added to an ArgumentParser.
 
-    This class allows defining argparse arguments in a declarative way, either directly
+    This class provides a declarative way to define argparse arguments, either directly
     or through type annotations using `Annotated` (aliased as `Arg` for convenience).
-
-    :param args: Positional arguments for the argument.
-    :param kwargs: Keyword arguments for the argument.
 
     Usage:
 
@@ -63,47 +55,66 @@ class Argument:
         ) -> None: ...
     else:
 
-        def __init__(self, *args, **kwds) -> None:
+        def __init__(self, *args: str, **kwds: Any) -> None:
+            """Initialize an Argument instance with names/flags and keyword arguments.
+
+            :param args: Positional arguments (names/flags) for the argument
+            :type args: str
+            :param kwds: Keyword arguments for the argument
+            :type kwds: Any
+            """
             self.args = args
             self.kwargs = kwds
 
     def set_name(self, /, name: str, *, keyword: bool = False) -> None:
-        """
-        Sets the name of the argument.
+        """Set the argument name and destination variable.
 
-        :param name: The name to set for the argument.
+        Configures how the argument will be referenced in the parsed arguments object.
+        For keyword arguments (--flags), automatically sets the dest parameter.
+
+        :param name: The name/destination for the argument
         :type name: str
+        :param keyword: Whether this is a keyword argument (prefixed with --)
+        :type keyword: bool
+        :raises Warning: If dest parameter is being overwritten
         """
         if not self.args:
-            self.args = (f"--{name}",) if keyword else (name,)
+            self.args = (f"--{name.replace('_', '-')}",) if keyword else (name,)
         if not keyword:
             return
         if "dest" in self.kwargs and self.kwargs["dest"] != name:  # pragma: no cover
-            warnings.warn("dest is overwritten")
+            warnings.warn("dest is overwritten", stacklevel=2)
         self.kwargs["dest"] = name
 
     def set_default(self, /, default: Any, *, keyword: bool = False) -> None:
-        """
-        Sets the default value of the argument.
+        """Set the argument's default value.
 
-        :param default: The default value to set for the argument.
+        :param default: The default value to set
         :type default: Any
+        :param keyword: Whether this is a keyword argument
+        :type keyword: bool
+        :raises Warning: If default value is being overwritten
         """
         if "default" in self.kwargs and self.kwargs["default"] != default:  # pragma: no cover
-            warnings.warn("default value is overwritten")
+            warnings.warn("default value is overwritten", stacklevel=2)
         self.kwargs["default"] = default
         if not keyword:
             self.kwargs["nargs"] = "?"
 
     def set_nargs(self, /, nargs: Union[int, str, None]) -> None:
-        """
-        Sets the number of arguments for the argument.
+        """Set how many arguments this parameter should consume.
 
-        :param nargs: The number of arguments for the argument.
+        :param nargs: Number of arguments:
+            - int: Exact number of arguments
+            - "?": 0 or 1 argument
+            - "*": 0 or more arguments
+            - "+": 1 or more arguments
+            - None: Single argument (default)
         :type nargs: Union[int, str, None]
+        :raises Warning: If nargs value is being overwritten
         """
         if "nargs" in self.kwargs and self.kwargs["nargs"] != nargs:  # pragma: no cover
-            warnings.warn("nargs is overwritten")
+            warnings.warn("nargs is overwritten", stacklevel=2)
         self.kwargs["nargs"] = nargs
 
     def __class_getitem__(cls, args: Any) -> Annotated:
@@ -146,29 +157,33 @@ class Argument:
         return Annotated[tp, cls(*args, **kwargs)]  # type: ignore
 
     def __call__(self, parser: ArgumentParser) -> ArgumentParser:
-        """
-        Adds the argument to the provided ArgumentParser.
+        """Add this argument to an ArgumentParser instance.
 
-        :param parser: The ArgumentParser to add the argument to.
+        This implements the callable interface that allows Argument instances to be
+        used directly with ArgumentParser.add_argument().
+
+        :param parser: The ArgumentParser to modify
         :type parser: ArgumentParser
-        :return: The ArgumentParser with the argument added.
+        :return: The modified ArgumentParser (for method chaining)
         :rtype: ArgumentParser
         """
         parser.add_argument(*self.args, **self.kwargs)
         return parser
 
     def __eq__(self, value: Any) -> bool:
-        if not isinstance(value, Argument):
+        if not isinstance(value, self.__class__):
             return False
         return self.args == value.args and self.kwargs == value.kwargs
 
     __hash__ = object.__hash__
 
     def __repr__(self) -> str:
-        """
-        Returns a string representation of the Argument instance.
+        """Generate a developer-friendly string representation of the Argument.
 
-        :return: A string representation of the Argument instance.
+        The representation includes the class name and all argument configuration
+        (names/flags and keyword arguments).
+
+        :return: String representation showing argument configuration
         :rtype: str
         """
         return f"{self.__class__.__qualname__}({self.args}, {self.kwargs})"
@@ -176,28 +191,20 @@ class Argument:
 
 if TYPE_CHECKING:
     Arg = Annotated
-    """Type alias for Annotated when used in type checking mode."""
 else:
     Arg = Argument
-    """Type alias for Argument that enables declarative argument definitions.
-
-    Example:
-    ```py
-    def cmd(
-        file: Arg[str, "-f", "--file", {"help": "Input file"}],
-        verbose: Arg[bool, "-v", "--verbose"]
-    ) -> None: ...
-    ```
-    """
 
 
 def get_argument(annotation: Any) -> Optional[Argument]:
-    """
-    Retrieves the Argument instance from an annotation.
+    """Extract an Argument instance from a type annotation.
 
-    :param annotation: The annotation to retrieve the Argument instance from.
+    This helper function checks if the annotation is either:
+    1. An Argument instance directly
+    2. An Annotated type containing an Argument in its metadata
+
+    :param annotation: The type annotation to inspect
     :type annotation: Any
-    :return: The Argument instance if found, otherwise None.
+    :return: The extracted Argument if found, None otherwise
     :rtype: Optional[Argument]
     """
     if isinstance(annotation, Argument):
@@ -220,20 +227,30 @@ def build_parser(
     unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
     parser_factory: Callable[..., _T_Parser] = ArgumentParser,
 ) -> _T_Parser:
-    """Build an ArgumentParser from a function's type-annotated signature.
+    """Construct an ArgumentParser from a function's signature and type annotations.
 
-    :param func: The function or signature to build parser from
+    This function analyzes the function's parameters and their type annotations to
+    automatically configure an ArgumentParser. Parameters annotated with `Arg` or
+    `Annotated[..., Argument(...)]` will be converted to command-line arguments.
+
+    Key features:
+    - Automatically handles positional vs optional arguments based on parameter kind
+    - Supports all standard argparse argument types and actions
+    - Provides flexible handling of unannotated parameters via unannotated_mode
+    - Preserves function docstring as parser description
+
+    :param func: The function or its signature to analyze
     :type func: Union[Callable, Signature]
-    :param unannotated_mode: How to handle parameters without Argument metadata:
-        - "strict": Raise TypeError
-        - "autoconvert": Infer Argument from type annotation
-        - "ignore": Skip unannotated parameters
+    :param unannotated_mode: Determines behavior for parameters without Argument metadata:
+        - "strict": Raises TypeError (default)
+        - "autoconvert": Attempts to infer Argument from type annotation
+        - "ignore": Silently skips unannotated parameters
     :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
-    :param parser_factory: Factory function to create the parser
+    :param parser_factory: Custom factory for creating the parser instance
     :type parser_factory: Callable[..., _T_Parser]
-    :return: Configured ArgumentParser instance
+    :return: Fully configured ArgumentParser instance
     :rtype: _T_Parser
-    :raises TypeError: For unsupported parameter kinds or strict mode violations
+    :raises TypeError: For invalid parameter kinds or strict mode violations
     :raises ValueError: For invalid unannotated_mode values
 
     Example:

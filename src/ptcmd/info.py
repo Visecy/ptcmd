@@ -1,3 +1,9 @@
+"""Command information and metadata handling.
+
+This module provides the CommandInfo class and related functionality for storing
+and retrieving command metadata.
+"""
+
 from argparse import ArgumentParser
 from types import MethodType
 from typing import TYPE_CHECKING, Any, Callable, List, NamedTuple, Optional, Protocol, Union
@@ -5,9 +11,18 @@ from typing import TYPE_CHECKING, Any, Callable, List, NamedTuple, Optional, Pro
 from prompt_toolkit.completion import Completer
 
 from . import constants
+from .completer import ArgparseCompleter
 
 if TYPE_CHECKING:
     from .core import BaseCmd
+
+
+CMD_ATTR_ARGPARSER = "argparser"
+CMD_ATTR_COMPLETER = "completer"
+CMD_ATTR_HIDDEN = "hidden"
+CMD_ATTR_DISABLED = "disabled"
+CMD_ATTR_HELP_CATEGORY = "help_category"
+CMD_ATTR_SHUTCUT = "shortcut"
 
 
 class CommandInfo(NamedTuple):
@@ -35,24 +50,31 @@ class CommandInfoGetter(Protocol):
         ...
 
 
-def build_cmd_info(obj: Union[CommandInfoGetter, Callable[["BaseCmd", List[str]], Optional[bool]]], cmd: "BaseCmd") -> CommandInfo:
+def build_cmd_info(
+    obj: Union[CommandInfoGetter, Callable[["BaseCmd", List[str]], Optional[bool]]], cmd: "BaseCmd"
+) -> CommandInfo:
     if hasattr(obj, "__cmd_info__"):
         return obj.__cmd_info__(cmd)
-    
+
     assert callable(obj), f"{obj} is not callable"
     assert obj.__name__.startswith(constants.COMMAND_FUNC_PREFIX), f"{obj} is not a command function"
-    cmd_name = obj.__name__[len(constants.COMMAND_FUNC_PREFIX):]
+    cmd_name = obj.__name__[len(constants.COMMAND_FUNC_PREFIX) :]
     if (constants.HELP_FUNC_PREFIX + cmd_name) in dir(cmd):
         help_func = getattr(cmd, constants.HELP_FUNC_PREFIX + cmd_name)
     else:
         help_func = None
+
+    completer = getattr(obj, CMD_ATTR_COMPLETER, None)
+    argparser = getattr(obj, CMD_ATTR_ARGPARSER, None)
+    if completer is None and argparser is not None:
+        completer = ArgparseCompleter(argparser)
     return CommandInfo(
         name=cmd_name,
         cmd_func=MethodType(obj, cmd),
         help_func=help_func,
-        category=getattr(obj, constants.CMD_ATTR_HELP_CATEGORY, None),
-        completer=getattr(obj, constants.CMD_ATTR_COMPLETER, None),
-        argparser=getattr(obj, constants.CMD_ATTR_ARGPARSER, None),
-        hidden=getattr(obj, constants.CMD_ATTR_HIDDEN, False),
-        disabled=getattr(obj, constants.CMD_ATTR_DISABLED, False),
+        category=getattr(obj, CMD_ATTR_HELP_CATEGORY, None),
+        completer=completer,
+        argparser=argparser,
+        hidden=getattr(obj, CMD_ATTR_HIDDEN, False),
+        disabled=getattr(obj, CMD_ATTR_DISABLED, False),
     )

@@ -1,7 +1,7 @@
 import argparse
-import pytest
 from unittest.mock import Mock
 
+import pytest
 from prompt_toolkit.document import Document
 
 from ptcmd.completer import ArgparseCompleter
@@ -13,12 +13,8 @@ def simple_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--alpha", help="Alpha option")
     parser.add_argument("-b", "--beta", help="Beta option")
-    parser.add_argument(
-        "positional", help="A positional argument", choices=["file1", "file2", "file3"]
-    )
-    parser.add_argument(
-        "optional_pos", nargs="?", help="An optional positional argument"
-    )
+    parser.add_argument("positional", help="A positional argument", choices=["file1", "file2", "file3"])
+    parser.add_argument("optional_pos", nargs="?", help="An optional positional argument")
     parser.add_argument("--choice", choices=["opt1", "opt2", "opt3"])
     parser.add_argument("--flag", action="store_true")
     parser.add_argument("--level", type=int)
@@ -45,18 +41,18 @@ def subcommand_parser() -> argparse.ArgumentParser:
 
 
 @pytest.fixture
-def subcommand_completer(subcommand_parser) -> ArgparseCompleter:
+def subcommand_completer(subcommand_parser: argparse.ArgumentParser) -> ArgparseCompleter:
     """Create an ArgparseCompleter instance with subcommands for testing."""
     return ArgparseCompleter(subcommand_parser)
 
 
 @pytest.fixture
-def completer(simple_parser):
+def completer(simple_parser: argparse.ArgumentParser) -> ArgparseCompleter:
     """Create an ArgparseCompleter instance for testing."""
     return ArgparseCompleter(simple_parser)
 
 
-def test_init(simple_parser):
+def test_init(simple_parser: argparse.ArgumentParser) -> None:
     """Test that the completer initializes correctly."""
     completer = ArgparseCompleter(simple_parser)
     assert completer._parser == simple_parser

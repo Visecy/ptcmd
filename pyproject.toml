@@ -39,7 +39,7 @@ classifiers = [
 
 [project.optional-dependencies]
 lint = ["ruff>=0.9.0"]
-dev = ["ptcmd[lint]", "pytest", "pytest-asyncio", "coverage"]
+dev = ["ptcmd[lint]", "pytest>=6.0.0", "pytest-asyncio>=0.20.0", "coverage>=7.2.0"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -54,14 +54,14 @@ source_archive = "https://github.com/org/repo/archive/{commit_hash}.zip"
 [tool.ruff]
 line-length = 127
 
-# Assume Python 3.10
-target-version = "py310"
+# Assume Python 3.8
+target-version = "py38"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 # McCabe complexity (`C901`) by default.
-select = ["E4", "E7", "E9", "F"]
+select = ["E", "W", "F", "B", "N", "C4", "ASYNC", "ANN0", "ANN2"]
 ignore = ["E402"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
