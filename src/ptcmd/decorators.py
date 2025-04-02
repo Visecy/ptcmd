@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from typing import Literal, Optional, TypeVar, Union, overload, Callable
+from typing import Callable, Literal, Optional, TypeVar, Union, overload
 
 from typing_extensions import ParamSpec
 

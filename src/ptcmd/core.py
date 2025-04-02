@@ -264,7 +264,7 @@ class BaseCmd(object):
         """
         pass
 
-    async def input_line(self) -> str:
+    async def input_line(self) -> str:  # pragma: no cover
         """Get a command line from the user.
 
         :return: The input line from the user

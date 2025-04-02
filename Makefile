@@ -26,19 +26,13 @@ lint:
 	ruff check ${MODULE_PATH} tests/ --fix
 
 test:
-	pytest --ignore=tests/online/
+	pytest
 
 test_with_coverage:
 	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest --ignore=tests/online/
 
-test_online:
-	pytest tests/online/
-
-test_online_with_coverage:
-	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest tests/online/
-
 coverage:
-	coverage run --source ${MODULE_PATH} --parallel-mode -m unittest
+	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest
 	coverage combine
 	coverage html -i
 
