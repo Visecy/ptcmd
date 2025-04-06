@@ -212,3 +212,131 @@ def test_positional_ordering(completer: ArgparseCompleter) -> None:
     document = Document(text="file1 ", cursor_position=6)
     completions = list(completer.get_completions(document, Mock()))
     assert len(completions) == 0
+
+def test_remainder_argument() -> None:
+    """Test REMAINDER type argument handling."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs=argparse.REMAINDER)
+    completer = ArgparseCompleter(parser)
+
+    # Test completing after REMAINDER argument
+    document = Document(text="file1 file2 ", cursor_position=12)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_double_dash_handling() -> None:
+    """Test -- separator handling."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--option")
+    parser.add_argument("files", nargs="*")
+    completer = ArgparseCompleter(parser)
+
+    # Test completing after --
+    document = Document(text="--option val -- ", cursor_position=16)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_complex_argument_state() -> None:
+    """Test complex argument state transitions."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--multi", nargs=2)
+    parser.add_argument("files", nargs="*")
+    completer = ArgparseCompleter(parser)
+
+    # Test partial multi-arg option
+    document = Document(text="--multi first ", cursor_position=14)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_error_handling() -> None:
+    """Test error handling paths."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--option", nargs=1)
+    completer = ArgparseCompleter(parser)
+
+    # Test with invalid input that would cause shlex to fail
+    document = Document(text="--option 'unclosed", cursor_position=18)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_negative_number_handling() -> None:
+    """Test handling of negative numbers that look like flags."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--number", type=int)
+    parser.add_argument("files", nargs="*")
+    completer = ArgparseCompleter(parser)
+
+    # Test with negative number
+    document = Document(text="-123 ", cursor_position=5)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_remainder_argument_consumption() -> None:
+    """Test REMAINDER argument consumes all remaining input."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--opt")
+    parser.add_argument("files", nargs=argparse.REMAINDER)
+    completer = ArgparseCompleter(parser)
+
+    # Test with REMAINDER argument
+    document = Document(text="--opt value file1 file2 ", cursor_position=23)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_abbreviated_options() -> None:
+    """Test completion of abbreviated options."""
+    parser = argparse.ArgumentParser(allow_abbrev=True)
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--version", action="store_true")
+    completer = ArgparseCompleter(parser)
+
+    # Test abbreviated option
+    document = Document(text="--ver", cursor_position=5)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 2
+    assert any(c.text == "--verbose" for c in completions)
+    assert any(c.text == "--version" for c in completions)
+
+def test_invalid_action_handling() -> None:
+    """Test handling when action is None."""
+    parser = argparse.ArgumentParser()
+    completer = ArgparseCompleter(parser)
+
+    # Test with invalid option that doesn't match any action
+    document = Document(text="--invalid", cursor_position=9)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_required_argument_handling() -> None:
+    """Test handling of required arguments."""
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--required", required=True)
+    completer = ArgparseCompleter(parser)
+
+    # Test with missing required argument
+    document = Document(text="", cursor_position=0)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 1
+    assert completions[0].text == "--required"
+
+def test_quoted_argument_handling() -> None:
+    """Test handling of quoted arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path")
+    completer = ArgparseCompleter(parser)
+
+    # Test with quoted argument
+    document = Document(text='--path "some path"', cursor_position=18)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0
+
+def test_nargs_optional_handling() -> None:
+    """Test handling of nargs=OPTIONAL arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--opt", nargs=argparse.OPTIONAL)
+    completer = ArgparseCompleter(parser)
+
+    # Test with optional argument
+    document = Document(text="--opt ", cursor_position=6)
+    completions = list(completer.get_completions(document, Mock()))
+    assert len(completions) == 0

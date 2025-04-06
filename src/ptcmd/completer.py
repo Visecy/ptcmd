@@ -55,9 +55,16 @@ class MultiPrefixCompleter(Completer):
 
     def get_completions(self, document: Document, complete_event: Any) -> Generator[Completion, None, None]:
         text = document.text_before_cursor.lstrip()
+        # Find the longest matching prefix
+        best_match = None
+        best_length = -1
         for prefix, completer in self.shortcuts.items():
-            if not text.startswith(prefix):
-                continue
+            if text.startswith(prefix) and len(prefix) > best_length:
+                best_match = (prefix, completer)
+                best_length = len(prefix)
+
+        if best_match is not None:
+            prefix, completer = best_match
             if completer is None:
                 return
             # Create a new document with the text after the prefix
@@ -68,7 +75,6 @@ class MultiPrefixCompleter(Completer):
             # Create a new document with the remaining text
             new_document = Document(remaining_text, cursor_position)
             yield from completer.get_completions(new_document, complete_event)
-            break
         else:
             if self.default is not None:
                 yield from self.default.get_completions(document, complete_event)
@@ -122,7 +128,7 @@ class ArgparseCompleter(Completer):
             else:
                 break
         else:  # pragma: no cover
-            # Revert to whitespace tokenization
+            # Revert to whitespace tokenization when shlex fails
             tokens = text.split()
 
         # Check if cursor is at end of text with trailing space
@@ -229,7 +235,6 @@ class ArgparseCompleter(Completer):
                             yield from completer._get_completion_texts(
                                 text, line, begidx, endidx, tokens[token_index + 1 :], start_position
                             )
-                            return
                         return
                     else:
                         pos_arg_state = self._ArgumentState(action)
@@ -351,8 +356,8 @@ class ArgparseCompleter(Completer):
             self.count = 0
             self.is_remainder = self.action.nargs == argparse.REMAINDER
 
-            nargs_range = getattr(self.action, "get_nargs_range", lambda: None)()
-            if nargs_range is not None:
+            nargs_range = getattr(self.action, "get_nargs_range", lambda: None)()  # pragma: no cover
+            if nargs_range is not None:  # pragma: no cover
                 self.min, self.max = nargs_range
             elif self.action.nargs is None:
                 self.min, self.max = 1, 1

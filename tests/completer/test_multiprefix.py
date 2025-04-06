@@ -115,3 +115,54 @@ def test_multi_prefix_completer_document_adjustment(mock_completer: MagicMock) -
     called_doc = mock_completer.get_completions.call_args[0][0]
     assert called_doc.text == "stat"  # Only the part before cursor position
     assert called_doc.cursor_position == 4  # 8 - len("git ")
+
+def test_multi_prefix_completer_empty_input(mock_completer: MagicMock) -> None:
+    """Test MultiPrefixCompleter with empty input."""
+    shortcuts = {
+        "git ": mock_completer
+    }
+    completer = MultiPrefixCompleter(shortcuts, default=None)  # type: ignore
+
+    # Test empty input
+    doc = Document("", cursor_position=0)
+    completions = list(completer.get_completions(doc, None))
+    assert len(completions) == 0
+    mock_completer.get_completions.assert_not_called()
+
+def test_multi_prefix_completer_multiple_matches(mock_completer: MagicMock) -> None:
+    """Test MultiPrefixCompleter with multiple matching prefixes."""
+    # Create a dedicated mock completer for the subcommand
+    from prompt_toolkit.completion import Completer
+    sub_completer = MagicMock(spec=Completer)
+    sub_completion = MagicMock()
+    sub_completion.text = "subcommand"
+    sub_completer.get_completions.return_value = [sub_completion]
+
+    shortcuts = {
+        "git ": mock_completer,
+        "git sub ": sub_completer
+    }
+    completer = MultiPrefixCompleter(shortcuts, default=None)  # type: ignore
+
+    # Test with exact subcommand prefix
+    doc = Document("git sub cmd", cursor_position=10)
+    completions = list(completer.get_completions(doc, None))
+
+    # Should only get completions from sub_completer
+    assert len(completions) == 1
+    assert completions[0].text == "subcommand"
+    sub_completer.get_completions.assert_called_once()
+    mock_completer.get_completions.assert_not_called()
+
+def test_multi_prefix_completer_default_none(mock_completer: MagicMock) -> None:
+    """Test MultiPrefixCompleter with default=None behavior."""
+    shortcuts = {
+        "git ": mock_completer
+    }
+    completer = MultiPrefixCompleter(shortcuts, default=None)  # type: ignore
+
+    # Test with non-matching prefix
+    doc = Document("unknown command", cursor_position=15)
+    completions = list(completer.get_completions(doc, None))
+    assert len(completions) == 0
+    mock_completer.get_completions.assert_not_called()

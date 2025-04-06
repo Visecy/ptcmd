@@ -4,6 +4,7 @@ This module provides the core functionality for creating and managing commands
 with automatic argument parsing and completion.
 """
 
+from functools import update_wrapper
 import sys
 from argparse import ArgumentParser
 from inspect import Parameter, signature
@@ -39,16 +40,16 @@ class Command(Generic[_P, _T]):
 
     def __init__(
         self,
-        name: str,
         func: Callable[_P, _T],
         *,
+        cmd_name: Optional[str] = None,
         parser: Optional[ArgumentParser] = None,
         unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
         parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
         hidden: bool = False,
         disabled: bool = False,
     ) -> None:
-        self.__name__ = name
+        update_wrapper(self, func)
         self.__func__ = func
         if parser is None:
             parser = build_parser(
@@ -56,6 +57,7 @@ class Command(Generic[_P, _T]):
                 unannotated_mode=unannotated_mode,
                 parser_factory=parser_factory,
             )
+        self.cmd_name = cmd_name
         self.parser = parser
         self.completer = ArgparseCompleter(parser)
         self.hidden = hidden
@@ -109,8 +111,13 @@ class Command(Generic[_P, _T]):
         return self.__func__.__get__(instance, owner)
 
     def __cmd_info__(self, cmd: "BaseCmd") -> CommandInfo:
+        if self.cmd_name:
+            cmd_name = self.cmd_name
+        else:
+            assert self.__func__.__name__.startswith(cmd.COMMAND_FUNC_PREFIX), f"{self.__func__} is not a command function"
+            cmd_name = self.__func__.__name__[len(cmd.COMMAND_FUNC_PREFIX) :]
         return CommandInfo(
-            name=self.__name__,
+            name=cmd_name,
             cmd_func=MethodType(self.invoke, cmd),
             argparser=self.parser,
             completer=self.completer,
@@ -120,7 +127,3 @@ class Command(Generic[_P, _T]):
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _T:
         return self.__func__(*args, **kwargs)
-
-    @property
-    def __wrapped__(self) -> Callable[_P, _T]:
-        return self.__func__

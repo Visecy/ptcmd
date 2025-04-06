@@ -22,7 +22,6 @@ from rich.panel import Panel
 from rich.style import Style
 from rich.theme import Theme
 
-from . import constants
 from .argument import Arg
 from .completer import MultiPrefixCompleter
 from .decorators import auto_argument
@@ -85,8 +84,11 @@ class BaseCmd(object):
     ]
     __commands__: ClassVar[Set[CommandFunc]] = set()
 
+    COMMAND_FUNC_PREFIX: ClassVar[str] = "do_"
+    HELP_FUNC_PREFIX: ClassVar[str] = "help_"
+
     DEFAULT_PROMPT: ClassVar[Any] = "([cmd.prompt]Cmd[/cmd.prompt]) "
-    DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {"?": "help", "!": "shell", "@": "run_script"}
+    DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {}
 
     def __init__(
         self,
@@ -442,13 +444,15 @@ class BaseCmd(object):
 
     def __init_subclass__(cls, **kwds: Any) -> None:
         for name in dir(cls):
-            if not name.startswith(constants.COMMAND_FUNC_PREFIX):
+            if not name.startswith(cls.COMMAND_FUNC_PREFIX):
                 continue
             cls.__commands__.add(getattr(cls, name))
 
 
 class Cmd(BaseCmd):
     __slots__ = []
+
+    DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {"?": "help", "!": "shell", "@": "run_script"}
 
     @auto_argument
     def do_help(self, topic: str = "", *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821,B002

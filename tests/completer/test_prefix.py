@@ -174,3 +174,73 @@ def test_get_completions_preserves_completion_attributes(mock_completer: Mock) -
     assert completions[0].start_position == -6
     # Note: display and display_meta are FormattedText objects, not strings
     assert completions[0].style == "class:special"
+
+
+def test_get_completions_empty_input(mock_completer: Mock) -> None:
+    """Test completions with empty input."""
+    # Setup
+    prefix = "git "
+    completer = PrefixCompleter(prefix, mock_completer)
+
+    # Create empty document
+    document = Document(text="", cursor_position=0)
+    complete_event = Mock()
+
+    # Get completions
+    completions = list(completer.get_completions(document, complete_event))
+
+    # Verify
+    assert len(completions) == 0
+    mock_completer.get_completions.assert_not_called()
+
+
+def test_get_completions_partial_prefix_match(mock_completer: Mock) -> None:
+    """Test completions with partial prefix match."""
+    # Setup
+    prefix = "git "
+    completer = PrefixCompleter(prefix, mock_completer)
+
+    # Create document with partial prefix
+    document = Document(text="gi", cursor_position=2)
+    complete_event = Mock()
+
+    # Get completions
+    completions = list(completer.get_completions(document, complete_event))
+
+    # Verify
+    assert len(completions) == 0
+    mock_completer.get_completions.assert_not_called()
+
+
+def test_get_completions_special_char_prefix(mock_completer: Mock) -> None:
+    """Test completions with special character prefix."""
+    # Setup
+    prefix = "!cmd "
+    completer = PrefixCompleter(prefix, mock_completer)
+
+    # Create document with special prefix
+    document = Document(text="!cmd list", cursor_position=9)
+    complete_event = Mock()
+
+    # Setup mock to return some completions
+    mock_completion = Completion(
+        text="list",
+        start_position=-4,
+        display="list",
+        display_meta="List items",
+    )
+    mock_completer.get_completions.return_value = [mock_completion]
+
+    # Get completions
+    completions = list(completer.get_completions(document, complete_event))
+
+    # Verify
+    assert len(completions) == 1
+    assert completions[0].text == "list"
+    assert completions[0].start_position == -4
+
+    # Verify that the mock was called with the correct document
+    mock_completer.get_completions.assert_called_once()
+    called_document = mock_completer.get_completions.call_args[0][0]
+    assert called_document.text == "list"
+    assert called_document.cursor_position == 4  # 9 - len("!cmd ")

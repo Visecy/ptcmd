@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any, Callable, List, NamedTuple, Optional, Pro
 
 from prompt_toolkit.completion import Completer
 
-from . import constants
 from .completer import ArgparseCompleter
 
 if TYPE_CHECKING:
@@ -57,10 +56,10 @@ def build_cmd_info(
         return obj.__cmd_info__(cmd)
 
     assert callable(obj), f"{obj} is not callable"
-    assert obj.__name__.startswith(constants.COMMAND_FUNC_PREFIX), f"{obj} is not a command function"
-    cmd_name = obj.__name__[len(constants.COMMAND_FUNC_PREFIX) :]
-    if (constants.HELP_FUNC_PREFIX + cmd_name) in dir(cmd):
-        help_func = getattr(cmd, constants.HELP_FUNC_PREFIX + cmd_name)
+    assert obj.__name__.startswith(cmd.COMMAND_FUNC_PREFIX), f"{obj} is not a command function"
+    cmd_name = obj.__name__[len(cmd.COMMAND_FUNC_PREFIX) :]
+    if (cmd.HELP_FUNC_PREFIX + cmd_name) in dir(cmd):
+        help_func = getattr(cmd, cmd.HELP_FUNC_PREFIX + cmd_name)
     else:
         help_func = None
 

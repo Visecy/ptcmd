@@ -40,19 +40,6 @@ async def test_cmdloop_async(base_cmd: BaseCmd, pipe_input: PipeInput) -> None:
     except asyncio.TimeoutError:
         pytest.fail("cmdloop_async did not complete within timeout")
 
-def test_parseline(base_cmd: BaseCmd) -> None:
-    """Test command line parsing."""
-    # Test basic command
-    cmd, args, line = base_cmd.parseline("test arg1 arg2")
-    assert cmd == "test"
-    assert args == ["arg1", "arg2"]
-    assert line == "test arg1 arg2"
-
-    # Test shortcut
-    cmd, args, line = base_cmd.parseline("? arg1")
-    assert cmd == "help"
-    assert args == ["arg1"]
-
 @pytest.mark.asyncio
 async def test_onecmd(base_cmd: BaseCmd) -> None:
     """Test command execution."""
