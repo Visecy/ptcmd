@@ -34,9 +34,9 @@ if __name__ == "__main__":
 """
 
 from .argument import Arg, Argument
-from .command import Command
+from .command import Command, auto_argument
+from .info import set_info
 from .core import BaseCmd, Cmd
-from .decorators import auto_argument
 from .version import __version__
 
 __all__ = [
@@ -46,5 +46,5 @@ __all__ = [
     "BaseCmd",
     "Cmd",
     "auto_argument",
-    "__version__",
+    "set_info",
 ]

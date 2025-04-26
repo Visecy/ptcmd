@@ -4,6 +4,7 @@ import shlex
 import sys
 from asyncio import iscoroutine
 from collections import defaultdict
+from subprocess import run
 from typing import Any, Callable, ClassVar, Coroutine, Dict, List, Optional, Set, TextIO, Tuple, TypeVar, Union, cast
 
 from prompt_toolkit.application import create_app_session
@@ -24,12 +25,12 @@ from rich.theme import Theme
 
 from .argument import Arg
 from .completer import MultiPrefixCompleter
-from .decorators import auto_argument
-from .info import CommandInfo, CommandInfoGetter, build_cmd_info
+from .command import auto_argument
+from .info import CommandInfo, CommandLike, build_cmd_info, set_info
 from .theme import DEFAULT as DEFAULT_THEME
 
+
 _T = TypeVar("_T")
-CommandFunc = Union[CommandInfoGetter, Callable[["BaseCmd", List[str]], Optional[bool]]]
 
 
 async def _ensure_coroutine(coro: Union[Coroutine[Any, Any, _T], _T]) -> _T:
@@ -82,7 +83,7 @@ class BaseCmd(object):
         "default_category",
         "complete_style",
     ]
-    __commands__: ClassVar[Set[CommandFunc]] = set()
+    __commands__: ClassVar[Set[CommandLike]] = set()
 
     COMMAND_FUNC_PREFIX: ClassVar[str] = "do_"
     HELP_FUNC_PREFIX: ClassVar[str] = "help_"
@@ -102,11 +103,6 @@ class BaseCmd(object):
         shortcuts: Optional[Dict[str, str]] = None,
         intro: Optional[Any] = None,
         complete_style: CompleteStyle = CompleteStyle.READLINE_LIKE,
-        doc_leader: str = "",
-        doc_header: str = "Documented commands (type help <topic>):",
-        misc_header: str = "Miscellaneous help topics:",
-        undoc_header: str = "Undocumented commands:",
-        nohelp: str = "No help on %s",
     ) -> None:
         """Initialize the BaseCmd instance with configuration options.
 
@@ -129,15 +125,6 @@ class BaseCmd(object):
         :param complete_style: Style for completion menu (default: CompleteStyle.READLINE_LIKE)
         :type complete_style: CompleteStyle
         :param doc_leader: Header text for help output (default: "")
-        :type doc_leader: str
-        :param doc_header: Header for documented commands section (default: "Documented commands...")
-        :type doc_header: str
-        :param misc_header: Header for miscellaneous help topics (default: "Miscellaneous help...")
-        :type misc_header: str
-        :param undoc_header: Header for undocumented commands (default: "Undocumented commands:")
-        :type undoc_header: str
-        :param nohelp: Message shown when no help is available (default: "No help on %s")
-        :type nohelp: str
         """
         if stdin is not None:
             self.stdin = stdin
@@ -153,11 +140,6 @@ class BaseCmd(object):
         self.shortcuts = shortcuts or self.DEFAULT_SHORTCUTS
         self.complete_style = complete_style
         self.intro = intro
-        self.doc_leader = doc_leader
-        self.doc_header = doc_header
-        self.misc_header = misc_header
-        self.undoc_header = undoc_header
-        self.nohelp = nohelp
         # If any command has been categorized, then all other commands that haven't been categorized
         # will display under this section in the help output.
         self.default_category = "Uncategorized"
@@ -439,8 +421,15 @@ class BaseCmd(object):
             self.console.print(text, end="")
         return capture.get()
 
-    def _build_command_info(self, cmd: CommandFunc) -> CommandInfo:
+    def _build_command_info(self, cmd: CommandLike) -> CommandInfo:
         return build_cmd_info(cmd, self)
+
+    def __repr__(self) -> str:
+        """Return detailed command processor representation."""
+        return (
+            f"<{self.__class__.__name__} commands={len(self.command_info)} "
+            f"prompt={self.visible_prompt!r} shortcuts={self.shortcuts}>"
+        )
 
     def __init_subclass__(cls, **kwds: Any) -> None:
         for name in dir(cls):
@@ -453,6 +442,72 @@ class Cmd(BaseCmd):
     __slots__ = []
 
     DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {"?": "help", "!": "shell", "@": "run_script"}
+
+    def __init__(
+        self,
+        stdin: Optional[TextIO] = None,
+        stdout: Optional[TextIO] = None,
+        *,
+        session: Optional[Union[PromptSession, Callable[[Input, Output], PromptSession]]] = None,
+        console: Optional[Console] = None,
+        theme: Optional[Theme] = None,
+        prompt: Any = None,
+        shortcuts: Optional[Dict[str, str]] = None,
+        intro: Optional[Any] = None,
+        complete_style: CompleteStyle = CompleteStyle.READLINE_LIKE,
+        doc_leader: str = "",
+        doc_header: str = "Documented commands (type help <topic>):",
+        misc_header: str = "Miscellaneous help topics:",
+        undoc_header: str = "Undocumented commands:",
+        nohelp: str = "No help on %s",
+    ) -> None:
+        """Initialize the BaseCmd instance with configuration options.
+
+        :param stdin: Input stream (default: sys.stdin)
+        :type stdin: Optional[TextIO]
+        :param stdout: Output stream (default: sys.stdout)
+        :type stdout: Optional[TextIO]
+        :param session: Prompt session instance or factory (default: creates new session)
+        :type session: Optional[Union[PromptSession, Callable[..., PromptSession]]]
+        :param console: Rich console instance (default: creates new console)
+        :type console: Optional[Console]
+        :param theme: Rich theme for styling output (default: DEFAULT_THEME)
+        :type theme: Optional[Theme]
+        :param prompt: Command prompt display (default: DEFAULT_PROMPT)
+        :type prompt: Any
+        :param shortcuts: Command shortcut mappings (default: DEFAULT_SHORTCUTS)
+        :type shortcuts: Optional[Dict[str, str]]
+        :param intro: Introductory message shown at startup
+        :type intro: Optional[Any]
+        :param complete_style: Style for completion menu (default: CompleteStyle.READLINE_LIKE)
+        :type complete_style: CompleteStyle
+        :param doc_leader: Header text for help output (default: "")
+        :type doc_leader: str
+        :param doc_header: Header for documented commands section (default: "Documented commands...")
+        :type doc_header: str
+        :param misc_header: Header for miscellaneous help topics (default: "Miscellaneous help...")
+        :type misc_header: str
+        :param undoc_header: Header for undocumented commands (default: "Undocumented commands:")
+        :type undoc_header: str
+        :param nohelp: Message shown when no help is available (default: "No help on %s")
+        :type nohelp: str
+        """
+        super().__init__(
+            stdin=stdin,
+            stdout=stdout,
+            session=session,
+            console=console,
+            theme=theme,
+            prompt=prompt,
+            shortcuts=shortcuts,
+            intro=intro,
+            complete_style=complete_style,
+        )
+        self.doc_leader = doc_leader
+        self.doc_header = doc_header
+        self.misc_header = misc_header
+        self.undoc_header = undoc_header
+        self.nohelp = nohelp
 
     @auto_argument
     def do_help(self, topic: str = "", *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821,B002
@@ -505,10 +560,18 @@ class Cmd(BaseCmd):
                 )
             )
             self.poutput(Panel(layout, title=self.doc_header))
-            self.poutput(self._format_help_menu(self.default_category, cmds_doc, verbose=verbose))
+            self.poutput(self._format_help_menu(self.default_category, cmds_doc, verbose=verbose, style="cmd.help.doc"))
+            self.poutput(
+                Panel(
+                    Columns([f"[cmd.help.name]{name}[/cmd.help.name]" for name in cmds_cats]),
+                    title=self.misc_header,
+                    title_align="left",
+                    style="cmd.help.misc",
+                )
+            )
 
-        self.poutput(Columns([f"[cmd.help.name]{name}[/cmd.help.name]" for name in cmds_cats]))
-        self.poutput(self._format_help_menu(self.undoc_header, cmds_undoc, verbose=verbose))
+        if cmds_undoc:
+            self.poutput(self._format_help_menu(self.undoc_header, cmds_undoc, verbose=verbose, style="cmd.help.undoc"))
 
     def _format_help_menu(
         self, title: str, cmds_info: List[CommandInfo], *, verbose: bool = False, style: Union[str, Style, None] = None
@@ -525,7 +588,7 @@ class Cmd(BaseCmd):
             ),
             title=title,
             title_align="left",
-            style=style or "cmd.help.menu",
+            style=style or "cmd.help.misc",
         )
 
     def _format_help_text(self, cmd_info: CommandInfo, verbose: bool = False) -> str:
@@ -560,3 +623,11 @@ class Cmd(BaseCmd):
     def do_exit(self, argv: List[str]) -> bool:
         """Exit the command loop"""
         return True
+
+    @set_info(hidden=True)
+    def do_shell(self, argv: List[str]) -> None:
+        """Run a shell command"""
+        cmd = " ".join(argv)
+        ret = run(cmd, shell=True)
+        if ret.returncode != 0:
+            self.perror(f"Command failed with exit code {ret.returncode}")

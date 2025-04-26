@@ -1,4 +1,3 @@
-import warnings
 from argparse import Action, ArgumentParser, FileType
 from inspect import Parameter, Signature, signature
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Tuple, Type, TypeVar, Union
@@ -33,7 +32,7 @@ class Argument:
     ```
     """
 
-    __slots__ = ["args", "kwargs", "dest"]
+    __slots__ = ["args", "kwargs", "_param"]
 
     if TYPE_CHECKING:
 
@@ -65,57 +64,39 @@ class Argument:
             """
             self.args = args
             self.kwargs = kwds
+            self._param = None
 
-    def set_name(self, /, name: str, *, keyword: bool = False) -> None:
-        """Set the argument name and destination variable.
+    def bind(self, param: Parameter) -> None:
+        if self._param is not None and param != self._param:
+            raise TypeError("argument already bound")
+        elif param.kind == Parameter.VAR_KEYWORD:
+            raise TypeError(f"argument cannot be used with **{param.name}")
 
-        Configures how the argument will be referenced in the parsed arguments object.
-        For keyword arguments (--flags), automatically sets the dest parameter.
-
-        :param name: The name/destination for the argument
-        :type name: str
-        :param keyword: Whether this is a keyword argument (prefixed with --)
-        :type keyword: bool
-        :raises Warning: If dest parameter is being overwritten
-        """
+        self._param = param
         if not self.args:
-            self.args = (f"--{name.replace('_', '-')}",) if keyword else (name,)
-        if not keyword:
-            return
-        if "dest" in self.kwargs and self.kwargs["dest"] != name:  # pragma: no cover
-            warnings.warn("dest is overwritten", stacklevel=2)
-        self.kwargs["dest"] = name
+            name = param.name
+            if param.kind == Parameter.KEYWORD_ONLY:
+                if len(name) == 1:
+                    name = f"-{name}"
+                else:
+                    name = f"--{name.replace('_', '-')}"
+            self.args = (name,)
 
-    def set_default(self, /, default: Any, *, keyword: bool = False) -> None:
-        """Set the argument's default value.
+        if param.kind == Parameter.VAR_POSITIONAL:
+            self.kwargs["nargs"] = "*"
+        elif param.kind == Parameter.KEYWORD_ONLY:
+            self.kwargs["dest"] = param.name
+        elif param.default is not Parameter.empty:
+            self.kwargs["nargs"] = '?'
 
-        :param default: The default value to set
-        :type default: Any
-        :param keyword: Whether this is a keyword argument
-        :type keyword: bool
-        :raises Warning: If default value is being overwritten
-        """
-        if "default" in self.kwargs and self.kwargs["default"] != default:  # pragma: no cover
-            warnings.warn("default value is overwritten", stacklevel=2)
-        self.kwargs["default"] = default
-        if not keyword:
-            self.kwargs["nargs"] = "?"
-
-    def set_nargs(self, /, nargs: Union[int, str, None]) -> None:
-        """Set how many arguments this parameter should consume.
-
-        :param nargs: Number of arguments:
-            - int: Exact number of arguments
-            - "?": 0 or 1 argument
-            - "*": 0 or more arguments
-            - "+": 1 or more arguments
-            - None: Single argument (default)
-        :type nargs: Union[int, str, None]
-        :raises Warning: If nargs value is being overwritten
-        """
-        if "nargs" in self.kwargs and self.kwargs["nargs"] != nargs:  # pragma: no cover
-            warnings.warn("nargs is overwritten", stacklevel=2)
-        self.kwargs["nargs"] = nargs
+        if param.kind == Parameter.KEYWORD_ONLY and self.kwargs.get("type") is bool:
+            if param.default is True:
+                self.kwargs["action"] = "store_false"
+            else:
+                self.kwargs["action"] = "store_true"
+            self.kwargs.pop("type")
+        if param.default is not Parameter.empty and self.kwargs.get("action") not in ("store_true", "store_false"):
+            self.kwargs["default"] = param.default
 
     def __class_getitem__(cls, args: Any) -> Annotated:
         """Create an Annotated type with Argument metadata for type annotations.
@@ -147,8 +128,8 @@ class Argument:
             *args, kwargs = args
             if "type" not in kwargs and "action" not in kwargs and callable(tp):
                 kwargs["type"] = tp
-        elif tp is bool:
-            kwargs = {"action": "store_true"}
+        # elif tp is bool:
+        #     kwargs = {"action": "store_true"}
         elif callable(tp):
             kwargs = {"type": tp}
 
@@ -291,12 +272,7 @@ def build_parser(
             else:
                 raise ValueError(f"unsupported unannotated_mode: {unannotated_mode}")
 
-        argument.set_name(param_name, keyword=param.kind == Parameter.KEYWORD_ONLY)
-        if param.kind == Parameter.VAR_POSITIONAL:
-            argument.set_nargs("*")
-        elif param.default is not Parameter.empty:
-            argument.set_default(param.default, keyword=param.kind == Parameter.KEYWORD_ONLY)
-
+        argument.bind(param)
         argument(parser)
 
     return parser

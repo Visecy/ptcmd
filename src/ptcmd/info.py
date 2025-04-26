@@ -49,8 +49,12 @@ class CommandInfoGetter(Protocol):
         ...
 
 
+CommandFunc = Callable[[Any, List[str]], Optional[bool]]
+CommandLike = Union[CommandInfoGetter, CommandFunc]
+
+
 def build_cmd_info(
-    obj: Union[CommandInfoGetter, Callable[["BaseCmd", List[str]], Optional[bool]]], cmd: "BaseCmd"
+    obj: CommandLike, cmd: "BaseCmd"
 ) -> CommandInfo:
     if hasattr(obj, "__cmd_info__"):
         return obj.__cmd_info__(cmd)
@@ -77,3 +81,21 @@ def build_cmd_info(
         hidden=getattr(obj, CMD_ATTR_HIDDEN, False),
         disabled=getattr(obj, CMD_ATTR_DISABLED, False),
     )
+
+
+def set_info(
+    argparser: Optional[ArgumentParser] = None,
+    completer: Optional[Completer] = None,
+    help_category: Optional[str] = None,
+    hidden: bool = False,
+    disabled: bool = False,
+) -> Callable[[CommandFunc], CommandFunc]:
+    def inner(func: CommandFunc) -> CommandFunc:
+        setattr(func, CMD_ATTR_ARGPARSER, argparser)
+        setattr(func, CMD_ATTR_COMPLETER, completer)
+        setattr(func, CMD_ATTR_HELP_CATEGORY, help_category)
+        setattr(func, CMD_ATTR_HIDDEN, hidden)
+        setattr(func, CMD_ATTR_DISABLED, disabled)
+        return func
+
+    return inner

@@ -301,9 +301,9 @@ class ArgparseCompleter(Completer):
                         start_position=start_position,
                         display=choice_str,
                         display_meta=(
-                            f"[{arg_state.action.dest}] - {arg_state.action.help}"
+                            f"{arg_state.action.metavar} - {arg_state.action.help}"
                             if arg_state.action.help
-                            else f"[{arg_state.action.dest}]"
+                            else f"{arg_state.action.metavar}"
                         ),
                     )
 
