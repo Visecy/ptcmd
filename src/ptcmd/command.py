@@ -4,6 +4,7 @@ This module provides the core functionality for creating and managing commands
 with automatic argument parsing and completion.
 """
 
+from copy import copy
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from functools import partial, update_wrapper
@@ -76,6 +77,8 @@ class Command(Generic[_P, _T]):
                 unannotated_mode=unannotated_mode,
                 parser_factory=parser_factory,
             )
+            if cmd_name is not None:
+                parser.prog = cmd_name
         self.cmd_name = cmd_name
         self.parser = parser
         self.parser.set_defaults(__cmd_ins__=self)
@@ -137,10 +140,15 @@ class Command(Generic[_P, _T]):
     def invoke_from_argv(self, cmd: "BaseCmd", argv: List[str]) -> Any:
         """Invoke the command with parsed arguments.
 
+        This method parses command-line arguments and invokes the command function.
+        It handles redirecting stdin/stdout during argument parsing.
+
+        :param cmd: The BaseCmd instance this command belongs to
+        :type cmd: "BaseCmd"
         :param argv: List of argument strings to parse
         :type argv: List[str]
         :return: The result of the wrapped function
-        :rtype: _T
+        :rtype: Any
         """
         parser: ArgumentParser = self.parser
         try:
@@ -174,6 +182,18 @@ class Command(Generic[_P, _T]):
         return ret
 
     def invoke_inner(self, cmd: "BaseCmd", ns: Namespace) -> _T:
+        """Execute the actual command function with arguments from namespace.
+
+        This method extracts arguments from the namespace and calls the
+        wrapped function with appropriate positional and keyword arguments.
+
+        :param cmd: The BaseCmd instance this command belongs to
+        :type cmd: "BaseCmd"
+        :param ns: The parsed argument namespace
+        :type ns: Namespace
+        :return: The result of the wrapped function
+        :rtype: _T
+        """
         func = MethodType(self.__func__, cmd)
         sig = signature(func)
         args, kwargs = [], {}
@@ -189,43 +209,94 @@ class Command(Generic[_P, _T]):
         return func(*args, **kwargs)
 
     def _ensure_subparsers(self) -> _SubParsersAction:
+        """Ensure the command parser has a subparsers action.
+
+        If the parser already has a subparsers action, return it.
+        Otherwise, create a new one and return it.
+
+        :return: The subparsers action for this command
+        :rtype: _SubParsersAction
+        """
         for action in self.parser._actions:
             if isinstance(action, _SubParsersAction):
                 return action
         return self.parser.add_subparsers(metavar='SUBCOMMAND')
 
     @overload
-    def __get__(self, instance: None, owner: Optional[type]) -> "Command[_P, _T]": ...
+    def __get__(self, instance: None, owner: Optional[type]) -> "Command[_P, _T]":
+        ...
 
     @overload
-    def __get__(self, instance: object, owner: Optional[type]) -> Callable[_P, _T]: ...
+    def __get__(self, instance: object, owner: Optional[type]) -> Callable[_P, _T]:
+        ...
 
     def __get__(self, instance: Optional[object], owner: Optional[type]) -> Union["Command[_P, _T]", Callable[_P, _T]]:
+        """Descriptor protocol implementation for method binding.
+
+        This allows Command instances to behave like methods when accessed
+        through a class instance.
+
+        :param instance: The instance accessing the descriptor (None for class access)
+        :type instance: Optional[object]
+        :param owner: The class that owns the descriptor
+        :type owner: Optional[type]
+        :return: Either the Command instance or a bound method
+        :rtype: Union["Command[_P, _T]", Callable[_P, _T]]
+        """
         if instance is None:
             return self
         return self.__func__.__get__(instance, owner)
 
     def __cmd_info__(self, cmd: "BaseCmd") -> CommandInfo:
+        """Get command information for this command.
+
+        This method implements the CommandInfoGetter protocol, providing
+        metadata about the command for use in help and completion.
+
+        :param cmd: The BaseCmd instance this command belongs to
+        :type cmd: "BaseCmd"
+        :return: Command information object
+        :rtype: CommandInfo
+        """
         if self.cmd_name:
             cmd_name = self.cmd_name
         else:
             assert self.__func__.__name__.startswith(cmd.COMMAND_FUNC_PREFIX), f"{self.__func__} is not a command function"
             cmd_name = self.__func__.__name__[len(cmd.COMMAND_FUNC_PREFIX) :]
+        parser = self.parser
+        if parser.prog != cmd_name:
+            parser = copy(parser)
+            parser.prog = cmd_name
         return CommandInfo(
             name=cmd_name,
             cmd_func=MethodType(self.invoke_from_argv, cmd),
-            argparser=self.parser,
-            completer=ArgparseCompleter(self.parser),
+            argparser=parser,
+            completer=ArgparseCompleter(parser),
             category=self.help_category,
             hidden=self.hidden,
             disabled=self.disabled,
         )
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _T:
+        """Call the wrapped function directly.
+
+        This allows Command instances to be used as callable objects.
+
+        :param args: Positional arguments to pass to the wrapped function
+        :type args: _P.args
+        :param kwargs: Keyword arguments to pass to the wrapped function
+        :type kwargs: _P.kwargs
+        :return: The result of the wrapped function
+        :rtype: _T
+        """
         return self.__func__(*args, **kwargs)
 
     def __repr__(self) -> str:
-        """Return detailed command representation."""
+        """Return detailed command representation.
+
+        :return: String representation of the command
+        :rtype: str
+        """
         parent_chain = []
         current = self._parent
         while current:
@@ -311,6 +382,22 @@ def auto_argument(
     func: Union[Callable[_P, _T], str, None] = None,
     **kwds: Any
 ) -> Union[Command[_P, _T], Callable[[Callable[_P, _T]], Command[_P, _T]]]:
+    """Decorator to automatically create a Command from a function.
+
+    This decorator analyzes the function's signature and type annotations
+    to create an ArgumentParser and Command instance.
+
+    It can be used in two ways:
+    1. As a simple decorator: @auto_argument
+    2. With parameters: @auto_argument(cmd_name="custom", hidden=True)
+
+    :param func: The function to wrap or a string name for the command
+    :type func: Union[Callable[_P, _T], str, None]
+    :param kwds: Additional keyword arguments to pass to Command constructor
+    :type kwds: Any
+    :return: Either a Command instance or a decorator function
+    :rtype: Union[Command[_P, _T], Callable[[Callable[_P, _T]], Command[_P, _T]]]
+    """
     name = func if isinstance(func, str) else None
 
     def inner(func: Callable[_P, _T]) -> Command[_P, _T]:

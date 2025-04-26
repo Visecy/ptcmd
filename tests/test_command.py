@@ -145,7 +145,8 @@ def test_cmd_info(base_cmd: BaseCmd) -> None:
     info = cmd.__cmd_info__(base_cmd)
     assert isinstance(info, CommandInfo)
     assert info.name == "test"  # Stripped "do_" prefix
-    assert info.argparser is cmd.parser
+    assert info.argparser is not None
+    assert info.argparser.prog == "test"
     assert info.completer is not None
 
 
@@ -182,7 +183,7 @@ def test_auto_argument_with_arg_annotation() -> None:
         self: Any,
         name: Arg[str, "-n", "--name", {"help": "Name argument"}],  # noqa: F821,B002,F722
         count: Arg[int, "-c", "--count"] = 1,  # noqa: F821,B002
-        verbose: Arg[bool] = False
+        verbose: Arg[bool] = False  # type: ignore
     ) -> None:
         pass
 

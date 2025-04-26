@@ -67,9 +67,16 @@ class Argument:
             self._param = None
 
     def bind(self, param: Parameter) -> None:
+        """Bind an Argument instance to a Parameter instance.
+
+        :param param: The Parameter instance to bind to the argument
+        :type param: Parameter
+        :raises TypeError: argument already bound
+        :raises TypeError: argument cannot be used with **kwargs
+        """
         if self._param is not None and param != self._param:
             raise TypeError("argument already bound")
-        elif param.kind == Parameter.VAR_KEYWORD:
+        elif param.kind == Parameter.VAR_KEYWORD:  # pragma: no cover
             raise TypeError(f"argument cannot be used with **{param.name}")
 
         self._param = param
@@ -128,12 +135,10 @@ class Argument:
             *args, kwargs = args
             if "type" not in kwargs and "action" not in kwargs and callable(tp):
                 kwargs["type"] = tp
-        # elif tp is bool:
-        #     kwargs = {"action": "store_true"}
-        elif callable(tp):
+        else:
             kwargs = {"type": tp}
 
-        if not all(isinstance(arg, str) for arg in args):
+        if not all(isinstance(arg, str) for arg in args):  # pragma: no cover
             raise TypeError("argument name must be str")
         return Annotated[tp, cls(*args, **kwargs)]  # type: ignore
 
@@ -152,7 +157,7 @@ class Argument:
         return parser
 
     def __eq__(self, value: Any) -> bool:
-        if not isinstance(value, self.__class__):
+        if not isinstance(value, self.__class__):  # pragma: no cover
             return False
         return self.args == value.args and self.kwargs == value.kwargs
 
@@ -188,7 +193,7 @@ def get_argument(annotation: Any) -> Optional[Argument]:
     :return: The extracted Argument if found, None otherwise
     :rtype: Optional[Argument]
     """
-    if isinstance(annotation, Argument):
+    if isinstance(annotation, Argument):  # pragma: no cover
         return annotation
     if get_origin(annotation) is not Annotated:
         return
@@ -257,19 +262,17 @@ def build_parser(
 
     for param_name, param in sig.parameters.items():
         annotation = type_hints.get(param_name, param.annotation)
-        if param.kind == Parameter.VAR_KEYWORD:
-            raise TypeError("var keyword arguments are not supported")
         argument = get_argument(annotation)
         if argument is None:
             if unannotated_mode == "strict":
                 raise TypeError(f"{param_name} is not annotated with Argument")
             elif unannotated_mode == "autoconvert":
                 argument = get_argument(Arg[annotation]) if annotation is not Parameter.empty else Argument()
-                if argument is None:
+                if argument is None:  # pragma: no cover
                     raise TypeError(f"{param_name} is not annotated with Argument and cannot be inferred from type")
             elif unannotated_mode == "ignore":
                 continue
-            else:
+            else:  # pragma: no cover
                 raise ValueError(f"unsupported unannotated_mode: {unannotated_mode}")
 
         argument.bind(param)

@@ -144,7 +144,7 @@ class BaseCmd(object):
         # will display under this section in the help output.
         self.default_category = "Uncategorized"
 
-        if self.stdin.isatty():
+        if self.stdin.isatty():  # pragma: no cover
             input = create_input(self.stdin)
             output = create_output(self.raw_stdout)
             with create_app_session(input, output):
@@ -603,11 +603,11 @@ class Cmd(BaseCmd):
             return cmd_info.help_func(verbose)
         if cmd_info.argparser is not None:
             if verbose:
-                return cmd_info.argparser.format_help()
+                return cmd_info.argparser.format_help().rstrip()
             elif cmd_info.argparser.description is not None:
-                return cmd_info.argparser.description
+                return cmd_info.argparser.description.rstrip()
             else:
-                return cmd_info.argparser.format_usage()
+                return cmd_info.argparser.format_usage().rstrip()
         if cmd_info.cmd_func.__doc__ is not None:
             return pydoc.getdoc(cmd_info.cmd_func)
         else:
