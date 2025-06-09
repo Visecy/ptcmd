@@ -9,5 +9,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
         with:
-          args: check --fix
+          args: check src/ tests/ --fix
       
