@@ -1,3 +1,4 @@
+import asyncio
 import io
 from typing import Generator
 
@@ -38,3 +39,16 @@ def test_parseline(cmd: Cmd) -> None:
     cmd_name, args, line = cmd.parseline("? arg1")
     assert cmd_name == "help"
     assert args == ["arg1"]
+
+
+@pytest.mark.asyncio
+async def test_cmdloop_async(cmd: Cmd, pipe_input: PipeInput) -> None:
+    """Test async command loop with real input."""
+    # Send input command
+    pipe_input.send_text("exit\n")
+
+    # Run cmdloop with timeout
+    try:
+        await asyncio.wait_for(cmd.cmdloop_async(), timeout=1.0)
+    except asyncio.TimeoutError:
+        pytest.fail("cmdloop_async did not complete within timeout")

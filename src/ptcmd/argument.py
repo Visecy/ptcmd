@@ -211,7 +211,7 @@ def build_parser(
     func: Union[Callable, Signature],
     *,
     unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
-    parser_factory: Callable[..., _T_Parser] = ArgumentParser,
+    parser_factory: Callable[[], _T_Parser] = ArgumentParser,
 ) -> _T_Parser:
     """Construct an ArgumentParser from a function's signature and type annotations.
 
@@ -256,7 +256,7 @@ def build_parser(
         parser = parser_factory()
         type_hints = {}
     else:
-        parser = parser_factory(prog=func.__name__, description=func.__doc__)
+        parser = parser_factory()
         sig = signature(func)
         type_hints = get_type_hints(func, include_extras=True)
 
