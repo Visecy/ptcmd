@@ -234,6 +234,7 @@ def test_auto_argument_with_custom_parser() -> None:
     assert "custom" in args
 
 
+@pytest.mark.asyncio
 async def test_command_in_basecmd() -> None:
     """Test Command integration with BaseCmd."""
     class TestCmd(BaseCmd):
@@ -244,8 +245,8 @@ async def test_command_in_basecmd() -> None:
         @auto_argument
         def do_add(
             self,
-            a: Arg[int, "-a", "--first"],  # noqa: F821,B002
-            b: Arg[int, "-b", "--second"]  # noqa: F821,B002
+            a: Arg[int, "-a"],  # noqa: F821,B002
+            b: Arg[int, "-b"]  # noqa: F821,B002
         ) -> None:
             self.output = f"Result: {a + b}"
 
@@ -261,6 +262,7 @@ async def test_command_in_basecmd() -> None:
     assert cmd.output == "Result: 12"
 
 
+@pytest.mark.asyncio
 async def test_subcommands() -> None:
     """Test subcommands in a Cmd instance."""
     class TestCmd(Cmd):
@@ -269,7 +271,7 @@ async def test_subcommands() -> None:
             self.output = ""
 
         @auto_argument
-        def do_main(self, arg: Optional[str] = None) -> None:
+        def do_main(self, *, arg: Optional[str] = None) -> None:
             self.output = f"Main command: {arg}"
 
         main_cmd = do_main
@@ -281,7 +283,7 @@ async def test_subcommands() -> None:
     cmd = TestCmd()
 
     # Test main command
-    await cmd.onecmd("main test")
+    await cmd.onecmd("main --arg test")
     assert cmd.output == "Main command: test"
 
     # Test subcommand
