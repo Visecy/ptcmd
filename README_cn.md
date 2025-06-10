@@ -12,9 +12,9 @@
 
 ## 1. 特性
 
-- 🚀 基于prompt_toolkit构建，提供强大的交互式体验
+- 🚀 基于`prompt_toolkit`构建，提供强大的交互式体验
 - 📝 自动参数解析和补全
-- 🌈 支持富文本输出(使用rich库)
+- 🌈 支持富文本输出(使用`rich`库)
 - ⚡ 原生支持异步命令
 - 🔍 内置命令补全和快捷键支持
 
@@ -267,7 +267,7 @@ class AsyncApp(Cmd):
 - [typer](https://github.com/tiangolo/typer)：一个用于构建命令行应用程序的Python库。
 - [cmd2](https://github.com/python-cmd2/cmd2)：一个用于在 Python 中构建交互式命令行应用程序的工具。它的目标是让开发人员可以快速轻松地构建功能丰富且用户友好的交互式命令行应用。
 - [argparse](https://docs.python.org/3/library/argparse.html)：Python标准库，用于解析命令行参数和选项。
-- [cmd](https://github.com/python/cpython/blob/3.12/Lib/cmd.py)：Python标准库，用于构建交互式命令行应用程序。
+- [cmd](https://docs.python.org/3/library/cmd.html)：Python标准库，用于构建交互式命令行应用程序。
 
 ## 7. 特别鸣谢
 

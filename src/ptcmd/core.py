@@ -2,10 +2,27 @@ import asyncio
 import pydoc
 import shlex
 import sys
+from argparse import Action, ArgumentParser
 from asyncio import iscoroutine
 from collections import defaultdict
 from subprocess import run
-from typing import Any, Callable, ClassVar, Coroutine, Dict, List, Optional, Set, TextIO, Tuple, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Coroutine,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Set,
+    TextIO,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from prompt_toolkit.application import create_app_session
 from prompt_toolkit.completion import Completer, NestedCompleter
@@ -24,8 +41,8 @@ from rich.style import Style
 from rich.theme import Theme
 
 from .argument import Arg
-from .completer import MultiPrefixCompleter
 from .command import auto_argument
+from .completer import ArgparseCompleter, MultiPrefixCompleter
 from .info import CommandInfo, CommandLike, build_cmd_info, set_info
 from .theme import DEFAULT as DEFAULT_THEME
 
@@ -160,6 +177,7 @@ class BaseCmd(object):
 
         self.cmdqueue = []
         self.lastcmd = ""
+        self.command_info  = {}
         self.command_info = {info.name: info for info in map(self._build_command_info, self.__commands__)}
 
     def cmdloop(self, intro: Optional[Any] = None) -> None:
@@ -432,10 +450,44 @@ class BaseCmd(object):
         )
 
     def __init_subclass__(cls, **kwds: Any) -> None:
+        cls.__commands__ = cls.__commands__.copy()
         for name in dir(cls):
             if not name.startswith(cls.COMMAND_FUNC_PREFIX):
                 continue
             cls.__commands__.add(getattr(cls, name))
+        ...
+
+
+class _TopicAction(Action):
+    def __init__(
+        self,
+        option_strings: Sequence[str],
+        dest: str,
+        nargs: Optional[Literal[1]] = None,
+        default: None = None,
+        type: None = None,
+        choices: None = None,
+        required: bool = False,
+        help: Optional[str] = None,
+        metavar: Union[str, Tuple[str], None] = None,
+        cmd: Optional["Cmd"] = None,
+    ) -> None:
+        self.option_strings = option_strings
+        self.dest = dest
+        self.nargs = nargs
+        self.const = None
+        self.default = default
+        self.type = type
+        self.required = required
+        self.help = help
+        self.metavar = metavar
+        self.cmd = cmd
+
+    @property
+    def choices(self) -> Optional[Sequence[str]]:
+        if self.cmd is None:
+            return
+        return self.cmd.get_visible_commands()
 
 
 class Cmd(BaseCmd):
@@ -521,6 +573,13 @@ class Cmd(BaseCmd):
         elif topic not in self.command_info:
             return self.perror(f"Unknown command: {topic}")
         return self.poutput(self._format_help_text(self.command_info[topic], verbose))
+
+    @do_help.completer_getter
+    def _help_completer(self) -> Completer:
+        parser = ArgumentParser("help", description=self.do_help.__doc__)
+        parser.add_argument("topic", nargs="?", help="Command or topic for help", action=_TopicAction, cmd=self)
+        parser.add_argument("-v", "--verbose", action="store_true", help="Show more detailed help")
+        return ArgparseCompleter(parser)
 
     def _help_menu(self, verbose: bool = False) -> None:
         """Display the help menu showing available commands and help topics.
@@ -620,11 +679,12 @@ class Cmd(BaseCmd):
                 cmds_cats[info.category].append(info)
         return cmds_cats
 
+    @set_info("exit")
     def do_exit(self, argv: List[str]) -> bool:
         """Exit the command loop"""
         return True
 
-    @set_info(hidden=True)
+    @set_info("shell", hidden=True)
     def do_shell(self, argv: List[str]) -> None:
         """Run a shell command"""
         cmd = " ".join(argv)

@@ -27,10 +27,11 @@ from typing import (
 )
 
 from typing_extensions import ParamSpec
+from rich_argparse import RichHelpFormatter
 
 from .argument import build_parser
 from .completer import ArgparseCompleter
-from .info import CommandInfo
+from .info import CommandInfo, CompleterGetterFunc
 
 if TYPE_CHECKING:
     from .core import BaseCmd
@@ -62,7 +63,7 @@ class Command(Generic[_P, _T]):
         cmd_name: Optional[str] = None,
         parser: Optional[ArgumentParser] = None,
         unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
-        parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
+        parser_factory: Optional[Callable[[], ArgumentParser]] = None,
         help_category: Optional[str] = None,
         hidden: bool = False,
         disabled: bool = False,
@@ -72,6 +73,10 @@ class Command(Generic[_P, _T]):
         self._parent = _parent
         self.__func__ = func
         if parser is None:
+            if parser_factory is None:
+                parser_factory = partial(
+                    ArgumentParser, prog=func.__name__, description=func.__doc__, formatter_class=RichHelpFormatter
+                )
             parser = build_parser(
                 MethodType(self.__func__, object()),
                 unannotated_mode=unannotated_mode,
@@ -85,6 +90,7 @@ class Command(Generic[_P, _T]):
         self.help_category = help_category
         self.hidden = hidden
         self.disabled = disabled
+        self._completer_getter = None
 
     @overload
     def add_subcommand(
@@ -95,7 +101,10 @@ class Command(Generic[_P, _T]):
         help: Optional[str] = None,
         aliases: Sequence[str] = (),
         add_help: bool = True,
-        **kwds: Any,
+        unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
+        help_category: Optional[str] = None,
+        hidden: bool = False,
+        disabled: bool = False,
     ) -> Callable[[Callable[_P_Subcmd, _T_Subcmd]], "Command[_P_Subcmd, _T_Subcmd]"]:
         ...
 
@@ -108,7 +117,10 @@ class Command(Generic[_P, _T]):
         help: Optional[str] = None,
         aliases: Sequence[str] = (),
         add_help: bool = True,
-        **kwds: Any,
+        unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
+        help_category: Optional[str] = None,
+        hidden: bool = False,
+        disabled: bool = False,
     ) -> "Command[_P_Subcmd, _T_Subcmd]":
         ...
 
@@ -126,8 +138,16 @@ class Command(Generic[_P, _T]):
         def inner(inner: Callable[_P_Subcmd, _T_Subcmd]) -> "Command[_P_Subcmd, _T_Subcmd]":
             return cast(Type[Command], self.__class__)(
                 inner,
-                cmd_name=name,
-                parser_factory=partial(subparser_action.add_parser, name, help=help, aliases=aliases, add_help=add_help),
+                cmd_name=None,
+                parser_factory=partial(
+                    subparser_action.add_parser,
+                    name,
+                    help=help,
+                    aliases=aliases,
+                    add_help=add_help,
+                    description=inner.__doc__,
+                    formatter_class=RichHelpFormatter,
+                ),
                 parser=None,
                 _parent=self,
                 **kwds,
@@ -137,7 +157,11 @@ class Command(Generic[_P, _T]):
         else:
             return inner(func)
 
-    def invoke_from_argv(self, cmd: "BaseCmd", argv: List[str]) -> Any:
+    def completer_getter(self, func: CompleterGetterFunc) -> CompleterGetterFunc:
+        self._completer_getter = func
+        return func
+
+    def invoke_from_argv(self, cmd: "BaseCmd", argv: List[str], *, parser: Optional[ArgumentParser] = None) -> Any:
         """Invoke the command with parsed arguments.
 
         This method parses command-line arguments and invokes the command function.
@@ -150,7 +174,8 @@ class Command(Generic[_P, _T]):
         :return: The result of the wrapped function
         :rtype: Any
         """
-        parser: ArgumentParser = self.parser
+        if parser is None:
+            parser = self.parser
         try:
             old_stdin = sys.stdin
             old_stdout = sys.stdout
@@ -267,11 +292,15 @@ class Command(Generic[_P, _T]):
         if parser.prog != cmd_name:
             parser = copy(parser)
             parser.prog = cmd_name
+        if self._completer_getter is not None:
+            completer = self._completer_getter(cmd)
+        else:
+            completer = ArgparseCompleter(parser)
         return CommandInfo(
             name=cmd_name,
-            cmd_func=MethodType(self.invoke_from_argv, cmd),
+            cmd_func=partial(self.invoke_from_argv, cmd, parser=parser),
             argparser=parser,
-            completer=ArgparseCompleter(parser),
+            completer=completer,
             category=self.help_category,
             hidden=self.hidden,
             disabled=self.disabled,
@@ -343,7 +372,6 @@ def auto_argument(
     :return: The decorated function
     :rtype: Command[_P, _T]
     """
-    ...
 
 
 @overload
@@ -375,7 +403,6 @@ def auto_argument(
     :return: Decorator function
     :rtype: Callable[[Callable[_P, _T]], Command[_P, _T]]]
     """
-    ...
 
 
 def auto_argument(

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ptcmd"
 description = "A modern cmd library based on prompt_toolkit"
-license = { file = "LICENSE" }
+license = {text = "Apache 2.0"}
 readme = "README.md"
 authors = [
     { name="Visecy", email="Visecy@visecy.org" }
@@ -17,7 +17,8 @@ dependencies = [
     "prompt_toolkit>=3.0.0",
     "rich>=13.0.0",
     "pygments>=2.15.0",
-    "typing_extensions>=4.5.0"
+    "typing_extensions>=4.5.0",
+    "rich-argparse>=1.6.0"
 ]
 requires-python = ">=3.8"
 keywords = ["cmd", "interactive", "prompt", "Python"]

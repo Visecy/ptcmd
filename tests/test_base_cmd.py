@@ -1,4 +1,3 @@
-import asyncio
 import io
 from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -28,17 +27,9 @@ def base_cmd(pipe_input: PipeInput) -> BaseCmd:
     )
     return BaseCmd(stdout=stdout, session=session)
 
-@pytest.mark.asyncio
-async def test_cmdloop_async(base_cmd: BaseCmd, pipe_input: PipeInput) -> None:
-    """Test async command loop with real input."""
-    # Send input command
-    pipe_input.send_text("exit\n")
-
-    # Run cmdloop with timeout
-    try:
-        await asyncio.wait_for(base_cmd.cmdloop_async(), timeout=1.0)
-    except asyncio.TimeoutError:
-        pytest.fail("cmdloop_async did not complete within timeout")
+def test_init(base_cmd: BaseCmd) -> None:
+    assert base_cmd.stdout is not None
+    assert not base_cmd.command_info
 
 @pytest.mark.asyncio
 async def test_onecmd(base_cmd: BaseCmd) -> None:

@@ -12,9 +12,9 @@ A modern interactive command-line application building library based on `prompt_
 
 ## 1. Features
 
-- 🚀 Built on prompt_toolkit for powerful interactive experiences
+- 🚀 Built on `prompt_toolkit` for powerful interactive experiences
 - 📝 Automatic parameter parsing and completion  
-- 🌈 Rich text output support (using rich library)
+- 🌈 Rich text output support (using `rich` library)
 - ⚡ Native async command support
 - 🔍 Built-in command completion and shortcut keys
 
@@ -238,6 +238,7 @@ Key Advantages:
 - [typer](https://github.com/tiangolo/typer) - Modern CLI framework with type hints
 - [cmd2](https://github.com/python-cmd2/cmd2) - Inspiration for many ptcmd features
 - [argparse](https://docs.python.org/3/library/argparse.html) - Python's standard argument parsing library
+- [cmd](https://docs.python.org/3/library/cmd.html) - Python's standard line-oriented command interpreters library
 
 ## 7. Special Thanks
 

@@ -1,5 +1,5 @@
 from argparse import Action, ArgumentParser, FileType
-from inspect import Parameter, Signature, signature
+from inspect import Parameter, Signature, isclass, signature
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Annotated, Self, get_args, get_origin, get_type_hints
@@ -133,10 +133,12 @@ class Argument:
             return Annotated[tp, arg_ins]
         elif args and isinstance(args[-1], Mapping):
             *args, kwargs = args
-            if "type" not in kwargs and "action" not in kwargs and callable(tp):
+            if "type" not in kwargs and "action" not in kwargs and _is_valid_argparse_type(tp):
                 kwargs["type"] = tp
-        else:
+        elif _is_valid_argparse_type(tp):
             kwargs = {"type": tp}
+        else:
+            kwargs = {}
 
         if not all(isinstance(arg, str) for arg in args):  # pragma: no cover
             raise TypeError("argument name must be str")
@@ -204,6 +206,26 @@ def get_argument(annotation: Any) -> Optional[Argument]:
             return arg
 
 
+def _is_valid_argparse_type(type_obj: Any) -> bool:
+    """Check if the given type object is a valid argument type for argparse.
+
+    :param type_obj: The type object to check
+    :type type_obj: Any
+    :return: True if the type object is valid, False otherwise
+    :rtype: bool
+    """
+    # 检查是否可调用（函数、类等）
+    if isinstance(type_obj, (str, FileType)):
+        return True
+    elif not callable(type_obj):
+        return False
+
+    origin = get_origin(type_obj)
+    if origin is not None and not isclass(origin):
+        return False
+    return True
+
+
 _T_Parser = TypeVar("_T_Parser", bound=ArgumentParser)
 
 
@@ -211,7 +233,7 @@ def build_parser(
     func: Union[Callable, Signature],
     *,
     unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
-    parser_factory: Callable[..., _T_Parser] = ArgumentParser,
+    parser_factory: Callable[[], _T_Parser] = ArgumentParser,
 ) -> _T_Parser:
     """Construct an ArgumentParser from a function's signature and type annotations.
 
@@ -256,7 +278,7 @@ def build_parser(
         parser = parser_factory()
         type_hints = {}
     else:
-        parser = parser_factory(prog=func.__name__, description=func.__doc__)
+        parser = parser_factory()
         sig = signature(func)
         type_hints = get_type_hints(func, include_extras=True)
 
