@@ -475,6 +475,7 @@ class BaseCmd(object):
                 f"Command prefix changed from {cmd_prefix!r} to {cls.COMMAND_FUNC_PREFIX!r}. "
                 "Existing commands cleared to prevent potential conflicts. Redefine commands "
                 "using the new prefix.",
+                RuntimeWarning,
                 stacklevel=3
             )
             cls.__commands__ = set()
