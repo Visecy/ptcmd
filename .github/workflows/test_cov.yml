@@ -27,7 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install setuptools wheel build
     - name: Run tests with coverage
-      run: make develop test_with_coverage
+      run: make develop coverage_result
     - name: Upload coverage data
       uses: actions/upload-artifact@v4
       with:
