@@ -4,9 +4,9 @@ This module provides the core functionality for creating and managing commands
 with automatic argument parsing and completion.
 """
 
-from copy import copy
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
+from copy import copy
 from functools import partial, update_wrapper
 from inspect import Parameter, signature
 from types import MethodType
@@ -26,8 +26,8 @@ from typing import (
     overload,
 )
 
-from typing_extensions import ParamSpec
 from rich_argparse import RichHelpFormatter
+from typing_extensions import ParamSpec, Concatenate, Self
 
 from .argument import build_parser
 from .completer import ArgparseCompleter
@@ -38,7 +38,8 @@ if TYPE_CHECKING:
 
 
 _P = ParamSpec("_P")
-_P_Subcmd  = ParamSpec("_P_Subcmd")
+_P_Method = ParamSpec("_P_Method")
+_P_Subcmd = ParamSpec("_P_Subcmd")
 _T = TypeVar("_T")
 _T_Subcmd = TypeVar("_T_Subcmd")
 
@@ -51,9 +52,10 @@ class Command(Generic[_P, _T]):
     - Command metadata (name, hidden status, disabled status)
     - Argument completion support
     - Method binding for instance commands
+    - Subcommand management
 
-    The Command class is typically created through the @command decorator rather
-    than being instantiated directly.
+    The Command class is typically created through the @auto_argument decorator
+    rather than being instantiated directly.
     """
 
     def __init__(
@@ -134,6 +136,26 @@ class Command(Generic[_P, _T]):
         add_help: bool = True,
         **kwds: Any,
     ) -> Union[Callable[[Callable[_P_Subcmd, _T_Subcmd]], "Command[_P_Subcmd, _T_Subcmd]"], "Command[_P_Subcmd, _T_Subcmd]"]:
+        """Add a subcommand to this command.
+
+        This method can be used as a decorator or directly with a function.
+        It creates a nested command structure where the current command acts as a parent.
+
+        :param name: Name of the subcommand
+        :type name: str
+        :param func: The function to wrap as a subcommand (if provided directly)
+        :type func: Optional[Callable[_P_Subcmd, _T_Subcmd]]
+        :param help: Help text for the subcommand
+        :type help: Optional[str]
+        :param aliases: Aliases for the subcommand
+        :type aliases: Sequence[str]
+        :param add_help: Whether to add help for the subcommand
+        :type add极_help: bool
+        :param kwds: Additional keyword arguments for the Command constructor
+        :type kwds: Any
+        :return: Either a decorator function or a Command instance
+        :rtype: Union[Callable[[Callable[_P_Subcmd, _T_Subcmd]], Command[_P_Subcmd, _T_Subcmd]], Command[_P_Subcmd, _T_Subcmd]]
+        """
         subparser_action = self._ensure_subparsers()
         def inner(inner: Callable[_P_Subcmd, _T_Subcmd]) -> "Command[_P_Subcmd, _T_Subcmd]":
             return cast(Type[Command], self.__class__)(
@@ -158,11 +180,20 @@ class Command(Generic[_P, _T]):
             return inner(func)
 
     def completer_getter(self, func: CompleterGetterFunc) -> CompleterGetterFunc:
+        """Decorator to set a custom completer getter function for this command.
+
+        The completer getter function should accept a BaseCmd instance and return a Completer.
+
+        :param func: The completer getter function
+        :type func: CompleterGetterFunc
+        :return: The same function (for decorator chaining)
+        :rtype: CompleterGetterFunc
+        """
         self._completer_getter = func
         return func
 
     def invoke_from_argv(self, cmd: "BaseCmd", argv: List[str], *, parser: Optional[ArgumentParser] = None) -> Any:
-        """Invoke the command with parsed arguments.
+        """Invoke the command with parsed arguments from a list of argv strings.
 
         This method parses command-line arguments and invokes the command function.
         It handles redirecting stdin/stdout during argument parsing.
@@ -171,6 +202,8 @@ class Command(Generic[_P, _T]):
         :type cmd: "BaseCmd"
         :param argv: List of argument strings to parse
         :type argv: List[str]
+        :param parser: Optional ArgumentParser to use (default: self.parser)
+        :type parser: Optional[ArgumentParser]
         :return: The result of the wrapped function
         :rtype: Any
         """
@@ -190,7 +223,19 @@ class Command(Generic[_P, _T]):
             sys.stdout = old_stdout
             sys.stderr = old_stderr
         return self.invoke_from_ns(cmd, ns)
+
     def invoke_from_ns(self, cmd: "BaseCmd", ns: Namespace) -> Any:
+        """Invoke the command from a parsed namespace object.
+
+        This method handles nested command invocation by traversing the command chain.
+
+        :param cmd: The BaseCmd instance this command belongs to
+        :type cmd: "BaseCmd"
+        :param ns: The parsed argument namespace
+        :type ns: Namespace
+        :return: The result of the wrapped function
+        :rtype: Any
+        """
         cmd_ins = getattr(ns, "__cmd_ins__", self)
         cmd_chain = [cmd_ins]
         while cmd_ins._parent is not None and cmd_ins is not self:
@@ -248,14 +293,14 @@ class Command(Generic[_P, _T]):
         return self.parser.add_subparsers(metavar='SUBCOMMAND')
 
     @overload
-    def __get__(self, instance: None, owner: Optional[type]) -> "Command[_P, _T]":
-        ...
+    def __get__(self, instance: None, owner: Optional[type]) -> Self: ...
 
     @overload
-    def __get__(self, instance: object, owner: Optional[type]) -> Callable[_P, _T]:
-        ...
+    def __get__(
+        self: "Command[Concatenate[Any, _P_Method], _T]", instance: object, owner: Optional[type]
+    ) -> Callable[_P_Method, _T]: ...
 
-    def __get__(self, instance: Optional[object], owner: Optional[type]) -> Union["Command[_P, _T]", Callable[_P, _T]]:
+    def __get__(self, instance: Optional[object], owner: Optional[type]) -> Callable[..., _T]:
         """Descriptor protocol implementation for method binding.
 
         This allows Command instances to behave like methods when accessed

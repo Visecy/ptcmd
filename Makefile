@@ -1,4 +1,4 @@
-.PHONY: run install install_all refresh uninstall develop build_dist test coverage clean
+.PHONY: run install install_all refresh uninstall develop build_dist test coverage coverage_result clean
 
 MODULE := ptcmd
 MODULE_PATH := src/${MODULE}
@@ -28,11 +28,10 @@ lint:
 test:
 	pytest
 
-test_with_coverage:
-	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest --ignore=tests/online/
-
-coverage:
+coverage_result:
 	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest
+
+coverage: coverage_result
 	coverage combine
 	coverage html -i
 
