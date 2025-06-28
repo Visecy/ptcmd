@@ -11,16 +11,20 @@ class Argument:
     This class provides a declarative way to define argparse arguments, either directly
     or through type annotations using `Annotated` (aliased as `Arg` for convenience).
 
-    Usage:
+    It supports all standard argparse argument types and actions, and can be used in
+    type annotations to define command-line arguments in a declarative way.
+
+    Example usage:
 
     ```py
+    # Using the Arg alias
     version: Arg[
         str,
         "-v", "--version",
         {"action": "version", "version": "0.1.0"}
     ]
 
-    # Or using Annotated
+    # Using Annotated with Argument directly
     version: Annotated[
         str,
         Argument(
@@ -214,7 +218,6 @@ def _is_valid_argparse_type(type_obj: Any) -> bool:
     :return: True if the type object is valid, False otherwise
     :rtype: bool
     """
-    # 检查是否可调用（函数、类等）
     if isinstance(type_obj, (str, FileType)):
         return True
     elif not callable(type_obj):

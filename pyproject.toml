@@ -24,7 +24,7 @@ requires-python = ">=3.8"
 keywords = ["cmd", "interactive", "prompt", "Python"]
 dynamic = ["version", "urls"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",

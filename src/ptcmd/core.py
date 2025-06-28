@@ -23,6 +23,7 @@ from typing import (
     Union,
     cast,
 )
+import warnings
 
 from prompt_toolkit.application import create_app_session
 from prompt_toolkit.completion import Completer, NestedCompleter
@@ -44,7 +45,7 @@ from .argument import Arg
 from .command import auto_argument
 from .completer import ArgparseCompleter, MultiPrefixCompleter
 from .info import CommandInfo, CommandLike, build_cmd_info, set_info
-from .theme import DEFAULT as DEFAULT_THEME
+from .theme import DEFAULT as THEME
 
 
 _T = TypeVar("_T")
@@ -106,7 +107,10 @@ class BaseCmd(object):
     HELP_FUNC_PREFIX: ClassVar[str] = "help_"
 
     DEFAULT_PROMPT: ClassVar[Any] = "([cmd.prompt]Cmd[/cmd.prompt]) "
+    DEFAULT_THEME: ClassVar[Theme] = THEME
     DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {}
+    DEFAULT_COMPLETE_STYLE: ClassVar[CompleteStyle] = CompleteStyle.READLINE_LIKE
+    DEFAULT_CATEGORY: ClassVar[str] = "Uncategorized"
 
     def __init__(
         self,
@@ -119,7 +123,7 @@ class BaseCmd(object):
         prompt: Any = None,
         shortcuts: Optional[Dict[str, str]] = None,
         intro: Optional[Any] = None,
-        complete_style: CompleteStyle = CompleteStyle.READLINE_LIKE,
+        complete_style: Optional[CompleteStyle] = None,
     ) -> None:
         """Initialize the BaseCmd instance with configuration options.
 
@@ -128,7 +132,7 @@ class BaseCmd(object):
         :param stdout: Output stream (default: sys.stdout)
         :type stdout: Optional[TextIO]
         :param session: Prompt session instance or factory (default: creates new session)
-        :type session: Optional[Union[PromptSession, Callable[..., PromptSession]]]
+        :type session: Optional[Union[PromptSession, Callable[[Input, Output], PromptSession]]]
         :param console: Rich console instance (default: creates new console)
         :type console: Optional[Console]
         :param theme: Rich theme for styling output (default: DEFAULT_THEME)
@@ -139,8 +143,8 @@ class BaseCmd(object):
         :type shortcuts: Optional[Dict[str, str]]
         :param intro: Introductory message shown at startup
         :type intro: Optional[Any]
-        :param complete_style: Style for completion menu (default: CompleteStyle.READLINE_LIKE)
-        :type complete_style: CompleteStyle
+        :param complete_style: Style for completion menu (default: DEFAULT_COMPLETE_STYLE)
+        :type complete_style: Optional[CompleteStyle]
         :param doc_leader: Header text for help output (default: "")
         """
         if stdin is not None:
@@ -152,14 +156,14 @@ class BaseCmd(object):
         else:
             self.raw_stdout = sys.stdout
 
-        self.theme = theme or DEFAULT_THEME
+        self.theme = theme or self.DEFAULT_THEME
         self.prompt = prompt or self.DEFAULT_PROMPT
         self.shortcuts = shortcuts or self.DEFAULT_SHORTCUTS
-        self.complete_style = complete_style
+        self.complete_style = complete_style or self.DEFAULT_COMPLETE_STYLE
         self.intro = intro
         # If any command has been categorized, then all other commands that haven't been categorized
         # will display under this section in the help output.
-        self.default_category = "Uncategorized"
+        self.default_category = self.DEFAULT_CATEGORY
 
         if self.stdin.isatty():  # pragma: no cover
             input = create_input(self.stdin)
@@ -210,7 +214,7 @@ class BaseCmd(object):
                 else:
                     try:
                         line = await self.input_line()
-                    except KeyboardInterrupt:
+                    except KeyboardInterrupt:  # pragma: no cover
                         continue
                     except EOFError:
                         line = "EOF"
@@ -342,7 +346,7 @@ class BaseCmd(object):
         except (Exception, SystemExit):
             self.pexcept()
             return
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cover
             return
         return bool(result) if result is not None else None
 
@@ -450,12 +454,37 @@ class BaseCmd(object):
         )
 
     def __init_subclass__(cls, **kwds: Any) -> None:
-        cls.__commands__ = cls.__commands__.copy()
+        parent_cmd_prefix = [base.COMMAND_FUNC_PREFIX for base in cls.__bases__ if issubclass(base, BaseCmd)]
+        if not parent_cmd_prefix:  # pragma: no cover
+            raise TypeError("This class must subclass from BaseCmd or a subclass of BaseCmd")
+        cmd_prefix = parent_cmd_prefix[0]
+        if not all(p == cmd_prefix for p in parent_cmd_prefix):
+            base_names = ', '.join(base.__name__ for base in cls.__bases__ if issubclass(base, BaseCmd))
+            raise TypeError(
+                f"All BaseCmd parent classes must have the same COMMAND_FUNC_PREFIX. "
+                f"Conflicting prefixes found in bases: {base_names}"
+            )
+        if cmd_prefix != cls.COMMAND_FUNC_PREFIX and cls.__commands__:
+            if cmd_prefix.startswith(cls.COMMAND_FUNC_PREFIX):
+                raise ValueError(
+                    f"Cannot override command prefix: parent prefix {cmd_prefix!r} conflicts with "
+                    f"subclass prefix {cls.COMMAND_FUNC_PREFIX!r}. The parent prefix must not be "
+                    "a prefix of the subclass prefix to avoid command name conflicts."
+                )
+            warnings.warn(
+                f"Command prefix changed from {cmd_prefix!r} to {cls.COMMAND_FUNC_PREFIX!r}. "
+                "Existing commands cleared to prevent potential conflicts. Redefine commands "
+                "using the new prefix.",
+                stacklevel=3
+            )
+            cls.__commands__ = set()
+        else:
+            cls.__commands__ = cls.__commands__.copy()
         for name in dir(cls):
             if not name.startswith(cls.COMMAND_FUNC_PREFIX):
                 continue
             cls.__commands__.add(getattr(cls, name))
-        ...
+
 
 
 class _TopicAction(Action):
@@ -485,12 +514,20 @@ class _TopicAction(Action):
 
     @property
     def choices(self) -> Optional[Sequence[str]]:
-        if self.cmd is None:
+        if self.cmd is None:  # pragma: no cover
             return
         return self.cmd.get_visible_commands()
 
 
 class Cmd(BaseCmd):
+    """Enhanced command line interface with built-in commands.
+
+    This class extends BaseCmd with additional functionality including:
+    - Built-in help system
+    - Command shortcuts
+    - Shell command execution
+    - Script running capabilities
+    """
     __slots__ = []
 
     DEFAULT_SHORTCUTS: ClassVar[Dict[str, str]] = {"?": "help", "!": "shell", "@": "run_script"}
@@ -513,23 +550,23 @@ class Cmd(BaseCmd):
         undoc_header: str = "Undocumented commands:",
         nohelp: str = "No help on %s",
     ) -> None:
-        """Initialize the BaseCmd instance with configuration options.
+        """Initialize the Cmd instance with extended configuration options.
 
         :param stdin: Input stream (default: sys.stdin)
         :type stdin: Optional[TextIO]
         :param stdout: Output stream (default: sys.stdout)
         :type stdout: Optional[TextIO]
         :param session: Prompt session instance or factory (default: creates new session)
-        :type session: Optional[Union[PromptSession, Callable[..., PromptSession]]]
+        :type session: Optional[Union[PromptSession, Callable[[Input, Output], PromptSession]]]
         :param console: Rich console instance (default: creates new console)
         :type console: Optional[Console]
-        :param theme: Rich theme for styling output (default: DEFAULT_THEME)
+        :param theme: Rich theme for styling output (default: None)
         :type theme: Optional[Theme]
-        :param prompt: Command prompt display (default: DEFAULT_PROMPT)
+        :param prompt: Command prompt display (default: None)
         :type prompt: Any
-        :param shortcuts: Command shortcut mappings (default: DEFAULT_SHORTCUTS)
+        :param shortcuts: Command shortcut mappings (default: None)
         :type shortcuts: Optional[Dict[str, str]]
-        :param intro: Introductory message shown at startup
+        :param intro: Introductory message shown at startup (default: None)
         :type intro: Optional[Any]
         :param complete_style: Style for completion menu (default: CompleteStyle.READLINE_LIKE)
         :type complete_style: CompleteStyle
@@ -563,7 +600,13 @@ class Cmd(BaseCmd):
 
     @auto_argument
     def do_help(self, topic: str = "", *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821,B002
-        """List available commands or provide detailed help for a specific command"""
+        """List available commands or provide detailed help for a specific command.
+
+        :param topic: Command or topic for which to get help, defaults to ""
+        :type topic: str
+        :param verbose: Show more detailed help, defaults to False
+        :type verbose: bool
+        """
         if not topic:
             return self._help_menu(verbose)
         help_topics = self._help_topics()
@@ -619,7 +662,8 @@ class Cmd(BaseCmd):
                 )
             )
             self.poutput(Panel(layout, title=self.doc_header))
-            self.poutput(self._format_help_menu(self.default_category, cmds_doc, verbose=verbose, style="cmd.help.doc"))
+            if cmds_doc:
+                self.poutput(self._format_help_menu(self.default_category, cmds_doc, verbose=verbose, style="cmd.help.doc"))
             self.poutput(
                 Panel(
                     Columns([f"[cmd.help.name]{name}[/cmd.help.name]" for name in cmds_cats]),
@@ -634,7 +678,7 @@ class Cmd(BaseCmd):
 
     def _format_help_menu(
         self, title: str, cmds_info: List[CommandInfo], *, verbose: bool = False, style: Union[str, Style, None] = None
-    ) -> Any:
+    ) -> Panel:
         cmds_info.sort(key=lambda info: info.name)
         return Panel(
             Columns(
@@ -681,12 +725,22 @@ class Cmd(BaseCmd):
 
     @set_info("exit")
     def do_exit(self, argv: List[str]) -> bool:
-        """Exit the command loop"""
+        """Exit the command loop.
+
+        :param argv: Command arguments (ignored)
+        :type argv: List[str]
+        :return: True to stop the command loop
+        :rtype: bool
+        """
         return True
 
     @set_info("shell", hidden=True)
     def do_shell(self, argv: List[str]) -> None:
-        """Run a shell command"""
+        """Run a shell command.
+
+        :param argv: Command and arguments to execute
+        :type argv: List[str]
+        """
         cmd = " ".join(argv)
         ret = run(cmd, shell=True)
         if ret.returncode != 0:
