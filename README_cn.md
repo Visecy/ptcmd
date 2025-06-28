@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ptcmd.svg)](https://pypi.python.org/pypi/ptcmd)
 [![Build Status](https://github.com/Visecy/ptcmd/actions/workflows/test_cov.yml/badge.svg)](https://github.com/Visecy/ptcmd/actions)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/ptcmd)
-![Python Version](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)
+![Python Version](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue.svg)
 
 一个现代化的基于`prompt_toolkit`的交互式命令行应用程序构建库
 
@@ -239,13 +239,13 @@ class AsyncApp(Cmd):
 
 ## 5. 库比较
 
-以下是cmd、cmd2和ptcmd三个库的优劣势比较：
+以下是cmd (标准库) 、cmd2和ptcmd三个库的优劣势比较：
 
-| 特性                 | cmd (标准库)  | cmd2                            | ptcmd                    |
+| 特性                 | cmd | cmd2                            | ptcmd                    |
 | -------------------- | ------------- | ------------------------------- | ------------------------ |
 | **功能丰富度** | 基础功能      | 功能最丰富                      | 功能较为丰富             |
 | **学习曲线**   | 简单          | 中等                            | 中等                     |
-| **交互体验**   | 基础          | 良好                            | 优秀(基于prompt_toolkit) |
+| **交互体验**   | 基础          | 良好                            | 优秀(基于`prompt_toolkit`) |
 | **自动补全**   | 无            | 支持                            | 支持                     |
 | **参数解析**   | 需手动处理    | 需要自行构建`ArgumentParser` | 自动解析                 |
 | **异步支持**   | 无            | 无                              | 原生支持                 |

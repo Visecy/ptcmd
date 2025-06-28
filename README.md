@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ptcmd.svg)](https://pypi.python.org/pypi/ptcmd)
 [![Build Status](https://github.com/Visecy/ptcmd/actions/workflows/test_cov.yml/badge.svg)](https://github.com/Visecy/ptcmd/actions)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/ptcmd)
-![Python Version](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)
+![Python Version](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13-blue.svg)
 
 A modern interactive command-line application building library based on `prompt_toolkit`
 
@@ -216,20 +216,26 @@ class AsyncApp(Cmd):
 
 ## 5. Library Comparison
 
-| Feature              | cmd (stdlib) | cmd2            | ptcmd                   |
-|----------------------|--------------|-----------------|-------------------------|
-| **Rich Output**      | No           | Basic           | Rich library support    |
-| **Auto Completion**  | No           | Yes             | Yes                     |
-| **Argument Parsing** | Manual       | argparse        | Automatic               |
-| **Async Support**    | No           | No              | Native                  |
-| **Dependencies**     | None         | Several         | Most                    |
-| **Learning Curve**   | Simple       | Moderate        | Moderate                |
-| **Use Case**         | Simple CLI   | Traditional CLI | Modern Interactive CLI  |
+The following table compares the advantages and disadvantages of three libraries: cmd (standard library), cmd2, and ptcmd:
+
+| Feature                 | cmd           | cmd2                            | ptcmd                     |
+| ----------------------- | ------------- | ------------------------------- | ------------------------- |
+| **Feature Richness**    | Basic         | Most Feature-Rich               | Moderately Feature-Rich  |
+| **Learning Curve**      | Simple        | Medium                          | Medium                    |
+| **Interactive Experience** | Basic       | Good                            | Excellent (based on `prompt_toolkit`) |
+| **Auto Completion**     | None          | Supported                       | Supported                 |
+| **Argument Parsing**    | Manual Handling | Requires building `ArgumentParser` | Auto Parsing            |
+| **Async Support**       | None          | None                            | Native Support            |
+| **Rich Text Output**    | None          | Uses `cmd2.ansi` module         | Uses `rich` library       |
+| **Dependencies**        | None          | More                            | Most                      |
+| **Performance**         | High          | Medium                          | Medium                    |
+| **Use Case**            | Simple CLI    | Complex CLI                     | Modern CLI                |
 
 Key Advantages:
-- **cmd**: Standard library, no dependencies
-- **cmd2**: Feature-rich traditional CLI
-- **ptcmd**: Modern interactive experience with best-in-class UX
+
+- **cmd**: Python standard library, no dependencies, suitable for simple CLI applications
+- **cmd2**: Comprehensive features, good community support, compatible with `cmd`, suitable for traditional CLIs requiring rich features
+- **ptcmd**: Provides the best interactive experience, native async support, suitable for modern CLI applications
 
 ## 6. Related Projects
 
