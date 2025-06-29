@@ -8,7 +8,6 @@ import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from copy import copy
 from functools import partial, update_wrapper
-from inspect import Parameter, signature
 from types import MethodType
 from typing import (
     TYPE_CHECKING,
@@ -29,7 +28,7 @@ from typing import (
 from rich_argparse import RichHelpFormatter
 from typing_extensions import ParamSpec, Concatenate, Self
 
-from .argument import build_parser
+from .argument import build_parser, invoke_from_ns
 from .completer import ArgparseCompleter
 from .info import CommandInfo, CompleterGetterFunc
 
@@ -248,35 +247,8 @@ class Command(Generic[_P, _T]):
         while cmd_chain:
             cmd_ins = cmd_chain.pop()
             ns.__cmd_result__ = ret
-            ret = cmd_ins.invoke_inner(cmd, ns)
+            ret = invoke_from_ns(MethodType(cmd_ins, cmd), ns)
         return ret
-
-    def invoke_inner(self, cmd: "BaseCmd", ns: Namespace) -> _T:
-        """Execute the actual command function with arguments from namespace.
-
-        This method extracts arguments from the namespace and calls the
-        wrapped function with appropriate positional and keyword arguments.
-
-        :param cmd: The BaseCmd instance this command belongs to
-        :type cmd: "BaseCmd"
-        :param ns: The parsed argument namespace
-        :type ns: Namespace
-        :return: The result of the wrapped function
-        :rtype: _T
-        """
-        func = MethodType(self.__func__, cmd)
-        sig = signature(func)
-        args, kwargs = [], {}
-        for param_name, param in sig.parameters.items():
-            if param.kind == Parameter.VAR_POSITIONAL:
-                args.extend(getattr(ns, param_name, []))
-            elif param.kind == Parameter.VAR_KEYWORD:
-                kwargs.update(getattr(ns, param_name, {}))
-            elif param.kind == Parameter.KEYWORD_ONLY:
-                kwargs[param_name] = getattr(ns, param_name)
-            else:
-                args.append(getattr(ns, param_name))
-        return func(*args, **kwargs)
 
     def _ensure_subparsers(self) -> _SubParsersAction:
         """Ensure the command parser has a subparsers action.
