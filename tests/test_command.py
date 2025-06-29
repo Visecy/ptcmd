@@ -110,24 +110,6 @@ def test_invoke_from_ns(base_cmd: BaseCmd) -> None:
     assert result == "arg1=test_value, flag=True"
 
 
-def test_invoke_inner(base_cmd: BaseCmd) -> None:
-    """Test the inner invoke mechanism."""
-    def test_func(self: Any, arg1: str, *args: str) -> dict:
-        return {"arg1": arg1, "args": args}
-
-    cmd_obj = Command(test_func)
-
-    # Test with various parameter types
-    ns = argparse.Namespace(
-        arg1="value1",
-        args=["extra1", "extra2"],
-    )
-
-    result = cmd_obj.invoke_inner(base_cmd, ns)
-    assert result["arg1"] == "value1"
-    assert result["args"] == ("extra1", "extra2")
-
-
 def test_descriptor_protocol() -> None:
     """Test the descriptor protocol (__get__ method)."""
     assert isinstance(Cmd.do_help, Command)

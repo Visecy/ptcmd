@@ -1,9 +1,10 @@
+import argparse
 from pathlib import Path
 
 import pytest
 from typing_extensions import Annotated
 
-from ptcmd.argument import Arg, Argument, build_parser, get_argument
+from ptcmd.argument import Arg, Argument, build_parser, get_argument, invoke_from_ns
 
 
 def test_argument() -> None:
@@ -51,3 +52,19 @@ def test_build_parser() -> None:
 
     parser = build_parser(example2, unannotated_mode="strict")
     assert parser.parse_known_args(["/tmp", "foo", "bar"])[0].__dict__ == {"path": Path("/tmp"), "args": ["foo", "bar"]}
+
+
+def test_invoke_from_ns() -> None:
+    """Test the inner invoke mechanism."""
+    def test_func(arg1: str, *args: str) -> dict:
+        return {"arg1": arg1, "args": args}
+
+    # Test with various parameter types
+    ns = argparse.Namespace(
+        arg1="value1",
+        args=["extra1", "extra2"],
+    )
+
+    result = invoke_from_ns(test_func, ns)
+    assert result["arg1"] == "value1"
+    assert result["args"] == ("extra1", "extra2")

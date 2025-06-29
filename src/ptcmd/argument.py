@@ -1,8 +1,11 @@
-from argparse import Action, ArgumentParser, FileType
+from argparse import Action, ArgumentParser, FileType, Namespace
 from inspect import Parameter, Signature, isclass, signature
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Annotated, Self, get_args, get_origin, get_type_hints
+
+
+_T = TypeVar("_T")
 
 
 class Argument:
@@ -304,3 +307,30 @@ def build_parser(
         argument(parser)
 
     return parser
+
+
+def invoke_from_ns(func: Callable[..., _T], ns: Namespace) -> _T:
+    """Execute the actual command function with arguments from namespace.
+
+    This method extracts arguments from the namespace and calls the
+    wrapped function with appropriate positional and keyword arguments.
+
+    :param func: The wrapped function to execute
+    :type func: Callable[..., _T]
+    :param ns: The parsed argument namespace
+    :type ns: Namespace
+    :return: The result of the wrapped function
+    :rtype: _T
+    """
+    sig = signature(func)
+    args, kwargs = [], {}
+    for param_name, param in sig.parameters.items():
+        if param.kind == Parameter.VAR_POSITIONAL:
+            args.extend(getattr(ns, param_name, []))
+        elif param.kind == Parameter.VAR_KEYWORD:
+            kwargs.update(getattr(ns, param_name, {}))
+        elif param.kind == Parameter.KEYWORD_ONLY:
+            kwargs[param_name] = getattr(ns, param_name)
+        else:
+            args.append(getattr(ns, param_name))
+    return func(*args, **kwargs)
