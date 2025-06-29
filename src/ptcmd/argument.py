@@ -1,6 +1,6 @@
 from argparse import Action, ArgumentParser, FileType, Namespace
 from inspect import Parameter, Signature, isclass, signature
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Annotated, Self, get_args, get_origin, get_type_hints
 
@@ -334,3 +334,31 @@ def invoke_from_ns(func: Callable[..., _T], ns: Namespace) -> _T:
         else:
             args.append(getattr(ns, param_name))
     return func(*args, **kwargs)
+
+
+def invoke_from_argv(
+    func: Callable[..., _T],
+    argv: Sequence[str],
+    *,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
+    parser_factory: Callable[[], ArgumentParser] = ArgumentParser,
+) -> _T:
+    """Invoke the command with parsed arguments from a list of argv strings.
+
+    :param func: The wrapped function to execute
+    :type func: Callable[..., _T]
+    :param argv: List of argument strings to parse
+    :type argv: List[str]
+    :param unannotated_mode: Determines behavior for parameters without Argument metadata:
+        - "strict": Raises TypeError (default)
+        - "autoconvert": Attempts to infer Argument from type annotation
+        - "ignore": Silently skips unannotated parameters
+    :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
+    :param parser_factory: Custom factory for creating the parser instance
+    :type parser_factory: Callable[..., _T_Parser]
+    :return: The result of the wrapped function
+    :rtype: Any
+    """
+    parser = build_parser(func, unannotated_mode=unannotated_mode, parser_factory=parser_factory)
+    ns = parser.parse_args(argv)
+    return invoke_from_ns(func, ns)

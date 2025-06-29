@@ -18,7 +18,11 @@ class RichTextApp(Cmd):
         self.poutput(make_test_card())
 
     @auto_argument
-    def do_pager(self, *, styles: Arg[bool, "-s", "--styles", {"help": ""}] = False) -> None:  # noqa: F821,B002
+    def do_pager(
+        self,
+        *,
+        styles: Arg[bool, "-s", "--styles", {"help": "Show styles in pager. Defaults to False"}] = False,  # noqa: F821,B002,F722
+    ) -> None:
         """show rich text with pager"""
         with self.console.pager(styles=styles):
             self.poutput(make_test_card())
@@ -36,7 +40,7 @@ class RichTextApp(Cmd):
         columns.right_to_left = True
         console.rule()
         console.print(columns)
-    
+
     @auto_argument
     def do_table(self) -> None:
         """show rich text with table"""
