@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from typing_extensions import Annotated
 
-from ptcmd.argument import Arg, Argument, build_parser, get_argument, invoke_from_ns
+from ptcmd.argument import Arg, Argument, build_parser, get_argument, invoke_from_argv, invoke_from_ns
 
 
 def test_argument() -> None:
@@ -55,7 +55,6 @@ def test_build_parser() -> None:
 
 
 def test_invoke_from_ns() -> None:
-    """Test the inner invoke mechanism."""
     def test_func(arg1: str, *args: str) -> dict:
         return {"arg1": arg1, "args": args}
 
@@ -68,3 +67,11 @@ def test_invoke_from_ns() -> None:
     result = invoke_from_ns(test_func, ns)
     assert result["arg1"] == "value1"
     assert result["args"] == ("extra1", "extra2")
+
+
+def test_invoke_from_argv() -> None:
+    def test_func(*args: str, verbose: bool) -> dict:
+        return {"args": args, "verbose": verbose}
+
+    result = invoke_from_argv(test_func, ["--verbose", "arg1", "arg2"], unannotated_mode="autoconvert")
+    assert result == {"args": ("arg1", "arg2"), "verbose": True}

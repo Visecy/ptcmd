@@ -25,7 +25,6 @@ from typing import (
 )
 import warnings
 
-from prompt_toolkit.application import create_app_session
 from prompt_toolkit.completion import Completer, NestedCompleter
 from prompt_toolkit.formatted_text import ANSI, is_formatted_text
 from prompt_toolkit.input import Input, create_input
@@ -168,12 +167,11 @@ class BaseCmd(object):
         if self.stdin.isatty():  # pragma: no cover
             input = create_input(self.stdin)
             output = create_output(self.raw_stdout)
-            with create_app_session(input, output):
-                if callable(session):
-                    self.session = session(input, output)
-                else:
-                    self.session = session or PromptSession(input=input, output=output)
-                self.stdout = cast(TextIO, StdoutProxy(raw=True, sleep_between_writes=0.01))
+            if callable(session):
+                self.session = session(input, output)
+            else:
+                self.session = session or PromptSession(input=input, output=output)
+            self.stdout = cast(TextIO, StdoutProxy(raw=True, sleep_between_writes=0.01))
         else:
             self.stdout = self.raw_stdout
             self.session = session if isinstance(session, PromptSession) else None
@@ -544,7 +542,7 @@ class Cmd(BaseCmd):
         prompt: Any = None,
         shortcuts: Optional[Dict[str, str]] = None,
         intro: Optional[Any] = None,
-        complete_style: CompleteStyle = CompleteStyle.READLINE_LIKE,
+        complete_style: Optional[CompleteStyle] = None,
         doc_leader: str = "",
         doc_header: str = "Documented commands (type help <topic>):",
         misc_header: str = "Miscellaneous help topics:",
