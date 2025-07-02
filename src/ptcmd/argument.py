@@ -118,6 +118,9 @@ class Argument:
         This enables the Argument class to be used in type annotations to define
         command-line arguments in a declarative way.
 
+        Additionally, if the type is a `Literal`, the choices will be automatically
+        set to the values in the Literal, unless the `choices` keyword is explicitly provided.
+
         :param args: Either:
             - A single type (e.g. `Argument[str]`)
             - A tuple of (type, *names, Argument) (e.g. `Argument[str, "-f", "--file"]`)
@@ -146,6 +149,14 @@ class Argument:
             kwargs = {"type": tp}
         else:
             kwargs = {}
+
+        # Automatically set choices from Literal type
+        origin = get_origin(tp)
+        if origin is Literal:
+            literal_choices = get_args(tp)
+            # Only set choices if not explicitly provided
+            if "choices" not in kwargs:
+                kwargs["choices"] = literal_choices
 
         if not all(isinstance(arg, str) for arg in args):  # pragma: no cover
             raise TypeError("argument name must be str")

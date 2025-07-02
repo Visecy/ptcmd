@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from typing_extensions import Annotated
@@ -75,3 +76,31 @@ def test_invoke_from_argv() -> None:
 
     result = invoke_from_argv(test_func, ["--verbose", "arg1", "arg2"], unannotated_mode="autoconvert")
     assert result == {"args": ("arg1", "arg2"), "verbose": True}
+
+
+def test_literal_support() -> None:
+    """Test automatic choices extraction from Literal types."""
+    # Test with Literal type alone
+    arg = Arg[Literal["a", "b", "c"]]
+    arg_ins = get_argument(arg)
+    assert arg_ins is not None
+    assert arg_ins.kwargs.get("choices") == ("a", "b", "c")
+
+    # Test with Literal and flags
+    arg = Arg[Literal[0, 1, 2], "-v", "--verbose"]
+    arg_ins = get_argument(arg)
+    assert arg_ins is not None
+    assert arg_ins.args == ("-v", "--verbose")
+    assert arg_ins.kwargs.get("choices") == (0, 1, 2)
+
+    # Test with explicit choices that override Literal
+    arg = Arg[Literal["x", "y", "z"], "--choice", {"choices": ["x", "y"]}]
+    arg_ins = get_argument(arg)
+    assert arg_ins is not None
+    assert arg_ins.kwargs.get("choices") == ["x", "y"]
+
+    # Test with non-Literal type
+    arg = Arg[str, "--name"]
+    arg_ins = get_argument(arg)
+    assert arg_ins is not None
+    assert "choices" not in arg_ins.kwargs

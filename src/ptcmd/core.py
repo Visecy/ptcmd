@@ -180,7 +180,10 @@ class BaseCmd(object):
         self.cmdqueue = []
         self.lastcmd = ""
         self.command_info  = {}
-        self.command_info = {info.name: info for info in map(self._build_command_info, self.__commands__)}
+        for info in map(self._build_command_info, self.__commands__):
+            if info.name in self.command_info:
+                raise ValueError(f"Duplicate command name: {info.name}")
+            self.command_info[info.name] = info
 
     def cmdloop(self, intro: Optional[Any] = None) -> None:
         """Start the command loop for synchronous execution.
@@ -478,7 +481,10 @@ class BaseCmd(object):
             )
             cls.__commands__ = set()
         else:
-            cls.__commands__ = cls.__commands__.copy()
+            cls.__commands__ = set()
+            for base in cls.__bases__:
+                if issubclass(base, BaseCmd):
+                    cls.__commands__.update(base.__commands__)
         for name in dir(cls):
             if not name.startswith(cls.COMMAND_FUNC_PREFIX):
                 continue

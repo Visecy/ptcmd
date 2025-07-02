@@ -37,7 +37,7 @@ from .argument import Arg, Argument
 from .command import Command, auto_argument
 from .info import set_info
 from .core import BaseCmd, Cmd
-from .version import __version__
+from .version import __version__  # noqa: F401
 
 __all__ = [
     "Arg",
