@@ -2,7 +2,9 @@ import asyncio
 import pydoc
 import shlex
 import sys
-from argparse import Action, ArgumentParser
+import warnings
+from abc import ABCMeta
+from argparse import _StoreAction
 from asyncio import iscoroutine
 from collections import defaultdict
 from subprocess import run
@@ -13,7 +15,6 @@ from typing import (
     Coroutine,
     Dict,
     List,
-    Literal,
     Optional,
     Sequence,
     Set,
@@ -23,7 +24,6 @@ from typing import (
     Union,
     cast,
 )
-import warnings
 
 from prompt_toolkit.completion import Completer, NestedCompleter
 from prompt_toolkit.formatted_text import ANSI, is_formatted_text
@@ -42,8 +42,8 @@ from rich.theme import Theme
 
 from .argument import Arg
 from .command import auto_argument
-from .completer import ArgparseCompleter, MultiPrefixCompleter
-from .info import CommandInfo, CommandLike, build_cmd_info, set_info
+from .completer import MultiPrefixCompleter
+from .info import CommandInfo, CommandLike, build_cmd_info, set_info, get_cmd_ins
 from .theme import DEFAULT as THEME
 
 
@@ -64,7 +64,7 @@ async def _ensure_coroutine(coro: Union[Coroutine[Any, Any, _T], _T]) -> _T:
         return coro
 
 
-class BaseCmd(object):
+class BaseCmd(object, metaclass=ABCMeta):
     """Base class for command line interfaces in ptcmd.
 
     This class provides the core functionality for building interactive command-line
@@ -492,36 +492,17 @@ class BaseCmd(object):
 
 
 
-class _TopicAction(Action):
-    def __init__(
-        self,
-        option_strings: Sequence[str],
-        dest: str,
-        nargs: Optional[Literal[1]] = None,
-        default: None = None,
-        type: None = None,
-        choices: None = None,
-        required: bool = False,
-        help: Optional[str] = None,
-        metavar: Union[str, Tuple[str], None] = None,
-        cmd: Optional["Cmd"] = None,
-    ) -> None:
-        self.option_strings = option_strings
-        self.dest = dest
-        self.nargs = nargs
-        self.const = None
-        self.default = default
-        self.type = type
-        self.required = required
-        self.help = help
-        self.metavar = metavar
-        self.cmd = cmd
-
+class _TopicAction(_StoreAction):
     @property
     def choices(self) -> Optional[Sequence[str]]:
-        if self.cmd is None:  # pragma: no cover
+        cmd = get_cmd_ins(self)
+        if cmd is None:  # pragma: no cover
             return
-        return self.cmd.get_visible_commands()
+        return cmd.get_visible_commands()
+
+    @choices.setter
+    def choices(self, _: Any) -> None:
+        pass
 
 
 class Cmd(BaseCmd):
@@ -604,7 +585,12 @@ class Cmd(BaseCmd):
         self.nohelp = nohelp
 
     @auto_argument
-    def do_help(self, topic: str = "", *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821,B002
+    def do_help(
+        self,
+        topic: Arg[Optional[str], {"action": _TopicAction, "help": "Command or topic for help"}] = None,  # noqa: F821,F722,B002
+        *,
+        verbose: Arg[bool, "-v", "--verbose", {"help": "Show more detailed help"}] = False  # noqa: F821,F722,B002
+    ) -> None:
         """List available commands or provide detailed help for a specific command.
 
         :param topic: Command or topic for which to get help, defaults to ""
@@ -621,13 +607,6 @@ class Cmd(BaseCmd):
         elif topic not in self.command_info:
             return self.perror(f"Unknown command: {topic}")
         return self.poutput(self._format_help_text(self.command_info[topic], verbose))
-
-    @do_help.completer_getter
-    def _help_completer(self) -> Completer:
-        parser = ArgumentParser("help", description=self.do_help.__doc__)
-        parser.add_argument("topic", nargs="?", help="Command or topic for help", action=_TopicAction, cmd=self)
-        parser.add_argument("-v", "--verbose", action="store_true", help="Show more detailed help")
-        return ArgparseCompleter(parser)
 
     def _help_menu(self, verbose: bool = False) -> None:
         """Display the help menu showing available commands and help topics.

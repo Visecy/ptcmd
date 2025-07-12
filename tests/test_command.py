@@ -264,10 +264,6 @@ async def test_subcommands() -> None:
 
     cmd = TestCmd()
 
-    # Test main command
-    await cmd.onecmd("main --arg test")
-    assert cmd.output == "Main command: test"
-
     # Test subcommand
     await cmd.onecmd("main sub subarg")
     assert cmd.output == "Subcommand: subarg"

@@ -6,7 +6,6 @@ with automatic argument parsing and completion.
 
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
-from copy import copy
 from functools import partial, update_wrapper
 from types import MethodType
 from typing import (
@@ -30,7 +29,7 @@ from typing_extensions import ParamSpec, Concatenate, Self
 
 from .argument import build_parser, invoke_from_ns
 from .completer import ArgparseCompleter
-from .info import CommandInfo, CompleterGetterFunc
+from .info import CommandInfo, CompleterGetterFunc, bind_parser
 
 if TYPE_CHECKING:
     from .core import BaseCmd
@@ -262,7 +261,7 @@ class Command(Generic[_P, _T]):
         for action in self.parser._actions:
             if isinstance(action, _SubParsersAction):
                 return action
-        return self.parser.add_subparsers(metavar='SUBCOMMAND')
+        return self.parser.add_subparsers(metavar='SUBCOMMAND', required=True)
 
     @overload
     def __get__(self, instance: None, owner: Optional[type]) -> Self: ...
@@ -305,10 +304,7 @@ class Command(Generic[_P, _T]):
         else:
             assert self.__func__.__name__.startswith(cmd.COMMAND_FUNC_PREFIX), f"{self.__func__} is not a command function"
             cmd_name = self.__func__.__name__[len(cmd.COMMAND_FUNC_PREFIX) :]
-        parser = self.parser
-        if parser.prog != cmd_name:
-            parser = copy(parser)
-            parser.prog = cmd_name
+        parser = bind_parser(self.parser, cmd_name, cmd)
         if self._completer_getter is not None:
             completer = self._completer_getter(cmd)
         else:
