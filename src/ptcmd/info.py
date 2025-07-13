@@ -6,6 +6,7 @@ and retrieving command metadata.
 
 import copy
 from argparse import Action, ArgumentParser, _SubParsersAction
+from contextlib import suppress
 from types import MethodType
 from typing import TYPE_CHECKING, Any, Callable, List, NamedTuple, Optional, Protocol, Union
 
@@ -138,8 +139,8 @@ def bind_parser(parser: ArgumentParser, cmd_name: str, cmd_ins: "BaseCmd") -> Ar
     :raises ValueError: If parser is already bound
     """
     # Check if parser is already bound
-    if hasattr(parser, PARSER_ATTR_CMD):
-        raise ValueError("Parser is already bound to a command")
+    if hasattr(parser, PARSER_ATTR_CMD):  # pragma: no cover
+        raise ValueError("parser is already bound to a command")
 
     # Create a shallow copy of the parser
     new_parser = copy.copy(parser)
@@ -153,22 +154,18 @@ def bind_parser(parser: ArgumentParser, cmd_name: str, cmd_ins: "BaseCmd") -> Ar
         new_parser.prog = cmd_name
 
     # Bind command metadata to parser
-    try:
+    with suppress(AttributeError):
         setattr(new_parser, PARSER_ATTR_CMD, cmd_ins)
         setattr(new_parser, PARSER_ATTR_NAME, cmd_name)
-    except AttributeError:
-        pass
 
     # Process all actions in the parser
     new_actions = []
     for action in new_parser._actions:
         action = copy.copy(action)
         # Bind command metadata to action
-        try:
+        with suppress(AttributeError):
             setattr(action, ACTION_ATTR_CMD, cmd_ins)
             setattr(action, ACTION_ATTR_NAME, cmd_name)
-        except AttributeError:
-            pass
 
         # Handle subparsers recursively
         if isinstance(action, _SubParsersAction):
@@ -190,7 +187,7 @@ def get_cmd_ins(obj: Union["BaseCmd", ArgumentParser, Action]) -> Optional["Base
     :rtype: Optional[BaseCmd]
     """
     from .core import BaseCmd
-    if isinstance(obj, BaseCmd):
+    if isinstance(obj, BaseCmd):  # pragma: no cover
         return obj
     elif isinstance(obj, ArgumentParser):
         return getattr(obj, PARSER_ATTR_CMD, None)

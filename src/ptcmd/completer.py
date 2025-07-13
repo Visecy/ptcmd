@@ -291,21 +291,23 @@ class ArgparseCompleter(Completer):
         start_position: int,
     ) -> Generator[Completion, None, None]:
         """Yield argument value completions."""
-        if arg_state.action.choices is not None:
-            used_values = consumed_arg_values.get(arg_state.action.dest, [])
-            for choice in arg_state.action.choices:
-                choice_str = str(choice)
-                if choice_str.startswith(text) and choice_str not in used_values:
-                    yield Completion(
-                        text=choice_str,
-                        start_position=start_position,
-                        display=choice_str,
-                        display_meta=(
-                            f"{arg_state.action.metavar} - {arg_state.action.help}"
-                            if arg_state.action.help
-                            else f"{arg_state.action.metavar}"
-                        ),
-                    )
+        if arg_state.action.choices is None:
+            return
+        used_values = consumed_arg_values.get(arg_state.action.dest, [])
+        for choice in arg_state.action.choices:
+            choice_str = str(choice)
+            if not choice_str.startswith(text) or choice_str in used_values:
+                continue
+            yield Completion(
+                text=choice_str,
+                start_position=start_position,
+                display=choice_str,
+                display_meta=(
+                    f"{arg_state.action.metavar} - {arg_state.action.help}"
+                    if arg_state.action.help
+                    else f"{arg_state.action.metavar}"
+                ),
+            )
 
     def _looks_like_flag(self, token: str) -> bool:
         """Check if token looks like a flag."""

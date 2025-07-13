@@ -46,6 +46,7 @@ class Argument:
         def __init__(
             self,
             *name_or_flags: str,
+            skip: bool = ...,
             action: Union[str, Type[Action]] = ...,
             nargs: Union[int, str, None] = None,
             const: Any = ...,
@@ -71,6 +72,8 @@ class Argument:
             """
             self.args = args
             self.kwargs = kwds
+            if "skip" in self.kwargs and not self.kwargs["skip"]:
+                self.kwargs.pop("skip")
             self._param = None
 
     def bind(self, param: Parameter) -> None:
@@ -78,11 +81,11 @@ class Argument:
 
         :param param: The Parameter instance to bind to the argument
         :type param: Parameter
-        :raises TypeError: argument already bound
+        :raises ValueError: argument already bound
         :raises TypeError: argument cannot be used with **kwargs
         """
-        if self._param is not None and param != self._param:
-            raise TypeError("argument already bound")
+        if self._param is not None and param != self._param:  # pragma: no cover
+            raise ValueError("argument already bound")
         elif param.kind == Parameter.VAR_KEYWORD:  # pragma: no cover
             raise TypeError(f"argument cannot be used with **{param.name}")
 
@@ -139,8 +142,8 @@ class Argument:
         if args and isinstance(args[-1], cls):
             arg_ins: Self
             *args, arg_ins = args
-            arg_ins.args = tuple(args) + arg_ins.args
-            return Annotated[tp, arg_ins]
+            args = tuple(args) + arg_ins.args
+            kwargs = arg_ins.kwargs
         elif args and isinstance(args[-1], Mapping):
             *args, kwargs = args
             if "type" not in kwargs and "action" not in kwargs and _is_valid_argparse_type(tp):
@@ -173,7 +176,8 @@ class Argument:
         :return: The modified ArgumentParser (for method chaining)
         :rtype: ArgumentParser
         """
-        parser.add_argument(*self.args, **self.kwargs)
+        if not self.kwargs.get("skip", False):
+            parser.add_argument(*self.args, **self.kwargs)
         return parser
 
     def __eq__(self, value: Any) -> bool:
@@ -199,6 +203,8 @@ if TYPE_CHECKING:
     Arg = Annotated
 else:
     Arg = Argument
+
+IgnoreArg = Annotated[_T, Argument(skip=True)]
 
 
 def get_argument(annotation: Any) -> Optional[Argument]:

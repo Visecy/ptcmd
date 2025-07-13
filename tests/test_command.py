@@ -1,4 +1,5 @@
 import argparse
+from argparse import _SubParsersAction
 import sys
 from types import MethodType
 from typing import Any, Optional
@@ -9,7 +10,7 @@ import pytest
 from ptcmd.argument import Arg
 from ptcmd.command import Command, auto_argument
 from ptcmd.core import BaseCmd, Cmd
-from ptcmd.info import CommandInfo
+from ptcmd.info import CommandInfo, get_cmd_ins
 
 
 @pytest.fixture
@@ -122,13 +123,15 @@ def test_cmd_info(base_cmd: BaseCmd) -> None:
     def do_test(self: Any) -> None:
         pass
 
-    cmd = Command(do_test)
+    command = Command(do_test)
+    assert get_cmd_ins(command.parser) is None
 
-    info = cmd.__cmd_info__(base_cmd)
+    info = command.__cmd_info__(base_cmd)
     assert isinstance(info, CommandInfo)
     assert info.name == "test"  # Stripped "do_" prefix
     assert info.argparser is not None
     assert info.argparser.prog == "test"
+    assert get_cmd_ins(info.argparser) is base_cmd
     assert info.completer is not None
 
 
@@ -259,7 +262,7 @@ async def test_subcommands() -> None:
         main_cmd = do_main
 
         @main_cmd.add_subcommand("sub")
-        def do_main_sub(self, arg: Optional[str] = None) -> None:
+        def main_sub(self, arg: Optional[str] = None) -> None:
             self.output = f"Subcommand: {arg}"
 
     cmd = TestCmd()
@@ -267,3 +270,76 @@ async def test_subcommands() -> None:
     # Test subcommand
     await cmd.onecmd("main sub subarg")
     assert cmd.output == "Subcommand: subarg"
+
+
+def test_ensure_subparsers_with_existing() -> None:
+    """Test _ensure_subparsers when subparsers already exist."""
+    def func(self: Any) -> None:
+        pass
+
+    cmd = Command(func)
+
+    # First call creates the subparsers action
+    action1 = cmd._ensure_subparsers()
+    # Second call should return the same instance
+    action2 = cmd._ensure_subparsers()
+    assert action1 is action2
+
+
+def test_completer_getter(base_cmd: BaseCmd) -> None:
+    """Test custom completer getter assignment."""
+    def func(self: Any) -> None:
+        pass
+
+    cmd = Command(func, cmd_name="test")
+    mock_completer = MagicMock()
+
+    @cmd.completer_getter
+    def get_completer(cmd: BaseCmd) -> Any:
+        return mock_completer
+
+    assert cmd._completer_getter is get_completer
+
+    info = cmd.__cmd_info__(base_cmd)
+    assert info.name == "test"
+    assert info.completer is mock_completer
+
+
+def test_add_subcommand_with_aliases() -> None:
+    """Test adding subcommand with aliases."""
+    def main_func(self: Any) -> None:
+        pass
+
+    def sub_func(self: Any) -> None:
+        pass
+
+    main_cmd = Command(main_func)
+    main_cmd.add_subcommand("sub", sub_func, aliases=["s", "sb"])
+
+    # Check that the parser for the subcommand has the aliases
+    subparsers_action = main_cmd.parser._actions[-1]
+    assert isinstance(subparsers_action, _SubParsersAction)
+    # Check that aliases are present in the choices
+    assert "s" in subparsers_action.choices
+    assert "sb" in subparsers_action.choices
+    # The main command should be present too
+    assert "sub" in subparsers_action.choices
+
+
+@pytest.mark.asyncio
+async def test_disabled_command() -> None:
+    """Test that a disabled command is not executable."""
+
+    class TestCmd(BaseCmd):
+        @auto_argument(disabled=True)
+        def do_disabled_cmd(self) -> None:
+            self.poutput("This should not run")
+
+        def default(self, line: str) -> None:
+            self.unknown_command = True
+
+    cmd = TestCmd()
+    # Try to execute the disabled command
+    await cmd.onecmd("disabled_cmd")
+    # Since the command is disabled, it should show unknown command
+    assert cmd.unknown_command

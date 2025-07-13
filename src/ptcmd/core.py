@@ -36,6 +36,7 @@ from pygments.lexers.shell import BashLexer
 from rich.columns import Columns
 from rich.console import Console
 from rich.layout import Layout
+from rich.text import Text
 from rich.panel import Panel
 from rich.style import Style
 from rich.theme import Theme
@@ -591,13 +592,7 @@ class Cmd(BaseCmd):
         *,
         verbose: Arg[bool, "-v", "--verbose", {"help": "Show more detailed help"}] = False  # noqa: F821,F722,B002
     ) -> None:
-        """List available commands or provide detailed help for a specific command.
-
-        :param topic: Command or topic for which to get help, defaults to ""
-        :type topic: str
-        :param verbose: Show more detailed help, defaults to False
-        :type verbose: bool
-        """
+        """List available commands or provide detailed help for a specific command"""
         if not topic:
             return self._help_menu(verbose)
         help_topics = self._help_topics()
@@ -606,7 +601,7 @@ class Cmd(BaseCmd):
             return self.poutput(self._format_help_menu(topic, help_topics[topic], verbose=verbose))
         elif topic not in self.command_info:
             return self.perror(f"Unknown command: {topic}")
-        return self.poutput(self._format_help_text(self.command_info[topic], verbose))
+        return self.poutput(Text(self._format_help_text(self.command_info[topic], verbose)))
 
     def _help_menu(self, verbose: bool = False) -> None:
         """Display the help menu showing available commands and help topics.
@@ -667,7 +662,9 @@ class Cmd(BaseCmd):
         return Panel(
             Columns(
                 [
-                    f"[cmd.help.name]{info.name}[/cmd.help.name] - {self._format_help_text(info)}"
+                    Text.from_markup(f"[cmd.help.name]{info.name}[/cmd.help.name] - ").append_text(
+                        Text.from_ansi(self._format_help_text(info))
+                    )
                     if verbose
                     else f"[cmd.help.name]{info.name}[/cmd.help.name]"
                     for info in cmds_info
@@ -709,22 +706,12 @@ class Cmd(BaseCmd):
 
     @set_info("exit")
     def do_exit(self, argv: List[str]) -> bool:
-        """Exit the command loop.
-
-        :param argv: Command arguments (ignored)
-        :type argv: List[str]
-        :return: True to stop the command loop
-        :rtype: bool
-        """
+        """Exit the command loop"""
         return True
 
     @set_info("shell", hidden=True)
     def do_shell(self, argv: List[str]) -> None:
-        """Run a shell command.
-
-        :param argv: Command and arguments to execute
-        :type argv: List[str]
-        """
+        """Run a shell command"""
         cmd = " ".join(argv)
         ret = run(cmd, shell=True)
         if ret.returncode != 0:
