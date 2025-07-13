@@ -8,6 +8,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.input import create_pipe_input, PipeInput
 from prompt_toolkit.output import DummyOutput
 from rich.panel import Panel
+from rich.text import Text
 
 import ptcmd
 from ptcmd import Cmd
@@ -76,7 +77,7 @@ async def test_do_help_with_topic(cmd: Cmd) -> None:
 
     with patch.object(Cmd, 'poutput') as mock_poutput:
         cmd.do_help("test_cmd")
-        mock_poutput.assert_called_once_with("Test command help")
+        mock_poutput.assert_called_once_with(Text("Test command help"))
 
 @pytest.mark.asyncio
 async def test_do_help_verbose(cmd: Cmd) -> None:

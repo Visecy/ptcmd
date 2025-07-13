@@ -2,7 +2,9 @@ import asyncio
 import pydoc
 import shlex
 import sys
-from argparse import Action, ArgumentParser
+import warnings
+from abc import ABCMeta
+from argparse import _StoreAction
 from asyncio import iscoroutine
 from collections import defaultdict
 from subprocess import run
@@ -13,7 +15,6 @@ from typing import (
     Coroutine,
     Dict,
     List,
-    Literal,
     Optional,
     Sequence,
     Set,
@@ -23,7 +24,6 @@ from typing import (
     Union,
     cast,
 )
-import warnings
 
 from prompt_toolkit.completion import Completer, NestedCompleter
 from prompt_toolkit.formatted_text import ANSI, is_formatted_text
@@ -36,14 +36,15 @@ from pygments.lexers.shell import BashLexer
 from rich.columns import Columns
 from rich.console import Console
 from rich.layout import Layout
+from rich.text import Text
 from rich.panel import Panel
 from rich.style import Style
 from rich.theme import Theme
 
 from .argument import Arg
 from .command import auto_argument
-from .completer import ArgparseCompleter, MultiPrefixCompleter
-from .info import CommandInfo, CommandLike, build_cmd_info, set_info
+from .completer import MultiPrefixCompleter
+from .info import CommandInfo, CommandLike, build_cmd_info, set_info, get_cmd_ins
 from .theme import DEFAULT as THEME
 
 
@@ -64,7 +65,7 @@ async def _ensure_coroutine(coro: Union[Coroutine[Any, Any, _T], _T]) -> _T:
         return coro
 
 
-class BaseCmd(object):
+class BaseCmd(object, metaclass=ABCMeta):
     """Base class for command line interfaces in ptcmd.
 
     This class provides the core functionality for building interactive command-line
@@ -180,7 +181,10 @@ class BaseCmd(object):
         self.cmdqueue = []
         self.lastcmd = ""
         self.command_info  = {}
-        self.command_info = {info.name: info for info in map(self._build_command_info, self.__commands__)}
+        for info in map(self._build_command_info, self.__commands__):
+            if info.name in self.command_info:
+                raise ValueError(f"Duplicate command name: {info.name}")
+            self.command_info[info.name] = info
 
     def cmdloop(self, intro: Optional[Any] = None) -> None:
         """Start the command loop for synchronous execution.
@@ -478,7 +482,10 @@ class BaseCmd(object):
             )
             cls.__commands__ = set()
         else:
-            cls.__commands__ = cls.__commands__.copy()
+            cls.__commands__ = set()
+            for base in cls.__bases__:
+                if issubclass(base, BaseCmd):
+                    cls.__commands__.update(base.__commands__)
         for name in dir(cls):
             if not name.startswith(cls.COMMAND_FUNC_PREFIX):
                 continue
@@ -486,36 +493,17 @@ class BaseCmd(object):
 
 
 
-class _TopicAction(Action):
-    def __init__(
-        self,
-        option_strings: Sequence[str],
-        dest: str,
-        nargs: Optional[Literal[1]] = None,
-        default: None = None,
-        type: None = None,
-        choices: None = None,
-        required: bool = False,
-        help: Optional[str] = None,
-        metavar: Union[str, Tuple[str], None] = None,
-        cmd: Optional["Cmd"] = None,
-    ) -> None:
-        self.option_strings = option_strings
-        self.dest = dest
-        self.nargs = nargs
-        self.const = None
-        self.default = default
-        self.type = type
-        self.required = required
-        self.help = help
-        self.metavar = metavar
-        self.cmd = cmd
-
+class _TopicAction(_StoreAction):
     @property
     def choices(self) -> Optional[Sequence[str]]:
-        if self.cmd is None:  # pragma: no cover
+        cmd = get_cmd_ins(self)
+        if cmd is None:  # pragma: no cover
             return
-        return self.cmd.get_visible_commands()
+        return cmd.get_visible_commands()
+
+    @choices.setter
+    def choices(self, _: Any) -> None:
+        pass
 
 
 class Cmd(BaseCmd):
@@ -598,14 +586,13 @@ class Cmd(BaseCmd):
         self.nohelp = nohelp
 
     @auto_argument
-    def do_help(self, topic: str = "", *, verbose: Arg[bool, "-v", "--verbose"] = False) -> None:  # noqa: F821,B002
-        """List available commands or provide detailed help for a specific command.
-
-        :param topic: Command or topic for which to get help, defaults to ""
-        :type topic: str
-        :param verbose: Show more detailed help, defaults to False
-        :type verbose: bool
-        """
+    def do_help(
+        self,
+        topic: Arg[Optional[str], {"action": _TopicAction, "help": "Command or topic for help"}] = None,  # noqa: F821,F722,B002
+        *,
+        verbose: Arg[bool, "-v", "--verbose", {"help": "Show more detailed help"}] = False  # noqa: F821,F722,B002
+    ) -> None:
+        """List available commands or provide detailed help for a specific command"""
         if not topic:
             return self._help_menu(verbose)
         help_topics = self._help_topics()
@@ -614,14 +601,7 @@ class Cmd(BaseCmd):
             return self.poutput(self._format_help_menu(topic, help_topics[topic], verbose=verbose))
         elif topic not in self.command_info:
             return self.perror(f"Unknown command: {topic}")
-        return self.poutput(self._format_help_text(self.command_info[topic], verbose))
-
-    @do_help.completer_getter
-    def _help_completer(self) -> Completer:
-        parser = ArgumentParser("help", description=self.do_help.__doc__)
-        parser.add_argument("topic", nargs="?", help="Command or topic for help", action=_TopicAction, cmd=self)
-        parser.add_argument("-v", "--verbose", action="store_true", help="Show more detailed help")
-        return ArgparseCompleter(parser)
+        return self.poutput(Text(self._format_help_text(self.command_info[topic], verbose)))
 
     def _help_menu(self, verbose: bool = False) -> None:
         """Display the help menu showing available commands and help topics.
@@ -682,7 +662,9 @@ class Cmd(BaseCmd):
         return Panel(
             Columns(
                 [
-                    f"[cmd.help.name]{info.name}[/cmd.help.name] - {self._format_help_text(info)}"
+                    Text.from_markup(f"[cmd.help.name]{info.name}[/cmd.help.name] - ").append_text(
+                        Text.from_ansi(self._format_help_text(info))
+                    )
                     if verbose
                     else f"[cmd.help.name]{info.name}[/cmd.help.name]"
                     for info in cmds_info
@@ -724,22 +706,12 @@ class Cmd(BaseCmd):
 
     @set_info("exit")
     def do_exit(self, argv: List[str]) -> bool:
-        """Exit the command loop.
-
-        :param argv: Command arguments (ignored)
-        :type argv: List[str]
-        :return: True to stop the command loop
-        :rtype: bool
-        """
+        """Exit the command loop"""
         return True
 
     @set_info("shell", hidden=True)
     def do_shell(self, argv: List[str]) -> None:
-        """Run a shell command.
-
-        :param argv: Command and arguments to execute
-        :type argv: List[str]
-        """
+        """Run a shell command"""
         cmd = " ".join(argv)
         ret = run(cmd, shell=True)
         if ret.returncode != 0:
