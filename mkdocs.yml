@@ -1,0 +1,51 @@
+site_name: ptcmd
+site_url: https://visecy.github.io/ptcmd/
+repo_url: https://github.com/Visecy/ptcmd
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - search.suggest
+
+plugins:
+  - search
+  - awesome-nav
+  - autorefs
+  - i18n:
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: zh
+          name: 中文
+          build: true
+          nav_translations:
+            Overview: 概览
+            User Guide: 用户指南
+            Examples: 示例
+            API Reference: API 参考
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          setup_commands:
+            - import sys
+            - sys.path.append('src')
+          options:
+            docstring_style: sphinx
+            
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+copyright: Copyright &copy; 2021 - 2025 Visecy. All rights reserved.
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Visecy/ptcmd

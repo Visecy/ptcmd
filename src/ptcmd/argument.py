@@ -265,17 +265,17 @@ def build_parser(
     `Annotated[..., Argument(...)]` will be converted to command-line arguments.
 
     Key features:
-    - Automatically handles positional vs optional arguments based on parameter kind
-    - Supports all standard argparse argument types and actions
-    - Provides flexible handling of unannotated parameters via unannotated_mode
-    - Preserves function docstring as parser description
+    1. Automatically handles positional vs optional arguments based on parameter kind
+    2. Supports all standard argparse argument types and actions
+    3. Provides flexible handling of unannotated parameters via unannotated_mode
+    4. Preserves function docstring as parser description
 
     :param func: The function or its signature to analyze
     :type func: Union[Callable, Signature]
     :param unannotated_mode: Determines behavior for parameters without Argument metadata:
-        - "strict": Raises TypeError (default)
-        - "autoconvert": Attempts to infer Argument from type annotation
-        - "ignore": Silently skips unannotated parameters
+        * "strict": Raises TypeError (default)
+        * "autoconvert": Attempts to infer Argument from type annotation
+        * "ignore": Silently skips unannotated parameters
     :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
     :param parser_factory: Custom factory for creating the parser instance
     :type parser_factory: Callable[..., _T_Parser]
@@ -367,9 +367,9 @@ def invoke_from_argv(
     :param argv: List of argument strings to parse
     :type argv: List[str]
     :param unannotated_mode: Determines behavior for parameters without Argument metadata:
-        - "strict": Raises TypeError (default)
-        - "autoconvert": Attempts to infer Argument from type annotation
-        - "ignore": Silently skips unannotated parameters
+        * "strict": Raises TypeError (default)
+        * "autoconvert": Attempts to infer Argument from type annotation
+        * "ignore": Silently skips unannotated parameters
     :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
     :param parser_factory: Custom factory for creating the parser instance
     :type parser_factory: Callable[..., _T_Parser]

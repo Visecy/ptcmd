@@ -422,22 +422,6 @@ def auto_argument(
     func: Union[Callable[_P, _T], str, None] = None,
     **kwds: Any
 ) -> Union[Command[_P, _T], Callable[[Callable[_P, _T]], Command[_P, _T]]]:
-    """Decorator to automatically create a Command from a function.
-
-    This decorator analyzes the function's signature and type annotations
-    to create an ArgumentParser and Command instance.
-
-    It can be used in two ways:
-    1. As a simple decorator: @auto_argument
-    2. With parameters: @auto_argument(cmd_name="custom", hidden=True)
-
-    :param func: The function to wrap or a string name for the command
-    :type func: Union[Callable[_P, _T], str, None]
-    :param kwds: Additional keyword arguments to pass to Command constructor
-    :type kwds: Any
-    :return: Either a Command instance or a decorator function
-    :rtype: Union[Command[_P, _T], Callable[[Callable[_P, _T]], Command[_P, _T]]]
-    """
     name = func if isinstance(func, str) else None
 
     def inner(func: Callable[_P, _T]) -> Command[_P, _T]:

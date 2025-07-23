@@ -2,8 +2,4 @@ prompt_toolkit>=3.0.0
 rich>=13.0.0
 pygments>=2.15.0
 typing_extensions>=4.5.0
-
-ruff>=0.9.0
-pytest>=6.0.0
-pytest-asyncio>=0.20.0
-coverage>=7.2.0
+rich-argparse>=1.6.0
