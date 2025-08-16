@@ -18,7 +18,7 @@
 
 与命令行应用统一使用终端语法不同，市面上的交互式命令行应用往往会使用不同的语言来实现。如Python的REPL就直接使用Python语言进行交互；gdb则有一套自定义的交互语言，用于调试程序；数据库客户端一般则使用SQL语言进行交互。
 
-```py
+```python linenums="1"
 >>> def factorial(n: int) -> int:
 ...     if n < 2:
 ...         return 1
@@ -80,7 +80,7 @@ version                            Show SFTP version
 
 对于交互式应用，Python实际上也提供了一个标准库`cmd`，允许开发者通过定义一个类继承`cmd.Cmd`类，并实现相应的方法，来创建一个交互式命令行应用。
 
-```py
+```python linenums="1"
 import sys
 import cmd
 

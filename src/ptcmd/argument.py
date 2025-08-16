@@ -19,7 +19,7 @@ class Argument:
 
     Example usage:
 
-    ```py
+    ```python linenums="1"
     # Using the Arg alias
     version: Arg[
         str,
@@ -285,7 +285,7 @@ def build_parser(
     :raises ValueError: For invalid unannotated_mode values
 
     Example:
-    ```py
+    ```python linenums="1"
     def example(
         path: Arg[str, "--path", {"help": "Input path"}],
         force: Arg[bool, "--force", {"action": "store_true"}],

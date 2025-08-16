@@ -1,6 +1,7 @@
 from prompt_toolkit.shortcuts import CompleteStyle
 from ptcmd import auto_argument, Arg, Cmd
 
+
 class DockerApp(Cmd):
     DEFAULT_PROMPT = "[cmd.prompt]docker[/cmd.prompt]> "
     DEFAULT_COMPLETE_STYLE = CompleteStyle.MULTI_COLUMN

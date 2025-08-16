@@ -1,13 +1,14 @@
 import asyncio
+from contextlib import suppress
 import pydoc
 import shlex
+import signal
 import sys
 import warnings
 from abc import ABCMeta
 from argparse import _StoreAction
 from asyncio import iscoroutine
 from collections import defaultdict
-from subprocess import run
 from typing import (
     Any,
     Callable,
@@ -710,9 +711,23 @@ class Cmd(BaseCmd):
         return True
 
     @set_info("shell", hidden=True)
-    def do_shell(self, argv: List[str]) -> None:
+    async def do_shell(self, argv: List[str]) -> None:
         """Run a shell command"""
         cmd = " ".join(argv)
-        ret = run(cmd, shell=True)
-        if ret.returncode != 0:
+        loop = asyncio.get_running_loop()
+        with suppress(NotImplementedError):
+            loop.add_signal_handler(signal.SIGINT, lambda: None)
+        try:
+            ret = await asyncio.create_subprocess_shell(
+                cmd,
+                stdin=None,
+                stdout=self.stdout,
+                stderr=self.stdout,
+                # start_new_session=True
+            )
+            returncode = await ret.wait()
+        finally:
+            with suppress(NotImplementedError):
+                loop.remove_signal_handler(signal.SIGINT)
+        if returncode != 0:
             self.perror(f"Command failed with exit code {ret.returncode}")

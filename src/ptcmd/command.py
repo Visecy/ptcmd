@@ -4,7 +4,7 @@ This module provides the core functionality for creating and managing commands
 with automatic argument parsing and completion.
 """
 
-import sys
+from ast import literal_eval
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from functools import partial, update_wrapper
 from types import MethodType
@@ -156,6 +156,8 @@ class Command(Generic[_P, _T]):
         """
         subparser_action = self._ensure_subparsers()
         def inner(inner: Callable[_P_Subcmd, _T_Subcmd]) -> "Command[_P_Subcmd, _T_Subcmd]":
+            if isinstance(func, Command):  # pragma: no cover
+                raise TypeError("add_subcommand cannot be used with Command instances directly")
             return cast(Type[Command], self.__class__)(
                 inner,
                 cmd_name=None,
@@ -207,19 +209,16 @@ class Command(Generic[_P, _T]):
         """
         if parser is None:
             parser = self.parser
+        argv = [
+            literal_eval(arg)
+            if (arg.startswith('"') and arg.endswith('"')) or (arg.startswith("'") and arg.endswith("'"))
+            else arg
+            for arg in argv
+        ]
         try:
-            old_stdin = sys.stdin
-            old_stdout = sys.stdout
-            old_stderr = sys.stderr
-            sys.stdin = cmd.stdin
-            sys.stdout = sys.stderr = cmd.raw_stdout
             ns = parser.parse_args(argv)
         except SystemExit:
             return
-        finally:
-            sys.stdin = old_stdin
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
         return self.invoke_from_ns(cmd, ns)
 
     def invoke_from_ns(self, cmd: "BaseCmd", ns: Namespace) -> Any:
@@ -425,6 +424,8 @@ def auto_argument(
     name = func if isinstance(func, str) else None
 
     def inner(func: Callable[_P, _T]) -> Command[_P, _T]:
+        if isinstance(func, Command):  # pragma: no cover
+            raise TypeError("auto_argument cannot be used with Command instances directly")
         return Command(
             func,
             cmd_name=name,

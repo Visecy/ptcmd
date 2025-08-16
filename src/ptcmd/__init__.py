@@ -11,7 +11,7 @@ Key Features:
 - Built-in help system generation
 
 Basic Usage:
-```python
+```python linenums="1"
 import sys
 from ptcmd import Cmd, Arg, auto_argument
 

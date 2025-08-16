@@ -12,7 +12,7 @@
 
 `ptcmd`通过`@auto_argument`装饰器和`Arg`类型提示消除了样板参数解析代码。该系统自动根据函数签名生成`ArgumentParser`实例，使命令定义既简洁又类型安全。
 
-```python
+```python linenums="1"
 from ptcmd import Cmd, Arg, auto_argument
 
 class MathApp(Cmd):
@@ -34,7 +34,7 @@ class MathApp(Cmd):
 
 以上示例等价于以下代码：
 
-```python
+```python linenums="1"
 from ptcmd import Cmd, Arg, auto_argument
 from argparse import ArgumentParser
 
@@ -54,7 +54,7 @@ class MathApp(Cmd):
 
 如果你正在使用类型检测器，使用`Arg`往往会被类型检查器视为错误，可以在行尾添加`# noqa: F821,F722,B002`让类型检查器忽略这些问题。如果你真的非常介意，可以`Annotated`与`Argument`来更加合法的声明参数，但这写起来更加麻烦，同时会失去一些自动推断特性。
 
-```python
+```python linenums="1"
 from typing import Annotated
 from ptcmd import Cmd, Argument, auto_argument
 
@@ -81,7 +81,7 @@ class MathApp(Cmd):
 
 `Cmd`类向外暴露了`console`属性，该属性是一个`rich.Console`对象，用于打印富文本。也可以使用封装好的`poutput`、`pwarning`、`perror`等封装好的方法，间接通过`console`打印富文本。
 
-```py
+```python linenums="1"
 class RichApp(Cmd):
     def do_hello(self, argv: list[str]) -> None:
         # 使用rich mackup文本进行输出
@@ -90,7 +90,7 @@ class RichApp(Cmd):
 
 prompt部分支持使用`rich`或`prompt_toolkit`的富文本样式。
 
-```py
+```python linenums="1"
 class RichTextApp(Cmd):
     DEFAULT_PROMPT = "[cmd.prompt]rich[/cmd.prompt]> "
 
@@ -118,7 +118,7 @@ class RichTextApp(Cmd):
 
 `ptcmd`支持为一个命令添加任意多级子命令。
 
-```py
+```python linenums="1"
 from ptcmd import Cmd, auto_argument
 
 class App(Cmd):
@@ -152,7 +152,7 @@ class App(Cmd):
 
 得益于`prompt_toolkit`优秀的异步支持，`ptcmd`也原生支持异步命令。
 
-```py
+```python linenums="1"
 from typing import Any, Optional
 from aiohttp import ClientSession
 from ptcmd import Cmd, auto_argument

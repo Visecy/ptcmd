@@ -7,10 +7,12 @@ theme:
   features:
     - navigation.tabs
     - navigation.indexes
+    - navigation.top
     - search.suggest
 
 plugins:
   - search
+  - mermaid2
   - awesome-nav
   - autorefs
   - i18n:
@@ -38,11 +40,19 @@ plugins:
             docstring_style: sphinx
             
 markdown_extensions:
+  - admonition
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
 
 copyright: Copyright &copy; 2021 - 2025 Visecy. All rights reserved.
 extra:

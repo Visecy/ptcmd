@@ -35,7 +35,7 @@ ptcmd applications generally follow a consistent pattern: inherit from the `Cmd`
 
 Let's start with the simplest application:
 
-```python
+```python linenums="1"
 import sys
 from ptcmd import Cmd
 
@@ -70,7 +70,7 @@ The previous example has a minor issue: it ignores additional arguments. This is
 
 `ptcmd` provides a declarative argument parsing approach that automatically analyzes function signatures to perform argument parsing. This uses the `@auto_argument` decorator:
 
-```python
+```python linenums="1"
 import sys
 from ptcmd import Cmd, auto_argument
 

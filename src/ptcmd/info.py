@@ -8,7 +8,7 @@ import copy
 from argparse import Action, ArgumentParser, _SubParsersAction
 from contextlib import suppress
 from types import MethodType
-from typing import TYPE_CHECKING, Any, Callable, List, NamedTuple, Optional, Protocol, Union
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, NamedTuple, Optional, Protocol, Union
 
 from prompt_toolkit.completion import Completer
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .core import BaseCmd
 
 
-CommandFunc = Callable[[Any, List[str]], Optional[bool]]
+CommandFunc = Callable[[Any, List[str]], Union[Optional[bool], Coroutine[None, None, Optional[bool]]]]
 CommandLike = Union["CommandInfoGetter", CommandFunc]
 HelpGetterFunc = Callable[[bool], str]
 ArgparserGetterFunc = Callable[[Any], ArgumentParser]
@@ -157,6 +157,10 @@ def bind_parser(parser: ArgumentParser, cmd_name: str, cmd_ins: "BaseCmd") -> Ar
     with suppress(AttributeError):
         setattr(new_parser, PARSER_ATTR_CMD, cmd_ins)
         setattr(new_parser, PARSER_ATTR_NAME, cmd_name)
+
+    # Set _print_message to use cmd_ins.poutput
+    with suppress(AttributeError):
+        new_parser._print_message = lambda message, file = None: cmd_ins.poutput(message)
 
     # Process all actions in the parser
     new_actions = []

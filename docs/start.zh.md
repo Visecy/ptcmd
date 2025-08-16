@@ -35,7 +35,7 @@ ptcmd应用基本都遵循一个一致的模式：继承 `Cmd` 类，并使用 `
 
 让我们从一个最简单的应用开始：
 
-```python
+```python linenums="1"
 import sys
 from ptcmd import Cmd
 
@@ -70,7 +70,7 @@ Hello, Alice!
 
 `ptcmd`提供了一种声明式参数解析的方式，可以通过分析函数的签名信息，自动进行参数解析。这需要使用`@auto_argument`装饰器来装饰命令方法：
 
-```python
+```python linenums="1" hl_lines="2 5-6"
 import sys
 from ptcmd import Cmd, auto_argument
 

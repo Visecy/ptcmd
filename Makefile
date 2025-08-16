@@ -35,11 +35,11 @@ docs:
 
 .PHONY: test
 test:
-	pytest
+	python -m pytest
 
 .PHONY: coverage_result
 coverage_result:
-	coverage run --source ${MODULE_PATH} --parallel-mode -m pytest
+	python -m coverage run --source ${MODULE_PATH} --parallel-mode -m pytest
 
 .PHONY: coverage
 coverage: coverage_result

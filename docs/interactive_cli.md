@@ -18,7 +18,7 @@ Therefore, interactive command-line applications are more suitable for scenarios
 
 Unlike standard command-line applications that uniformly use terminal syntax, interactive command-line applications on the market often use different languages for interaction. For example, Python's REPL uses Python directly for interaction; gdb has its own custom interaction language for debugging programs; database clients generally use SQL for interaction.
 
-```py
+```python linenums="1"
 >>> def factorial(n: int) -> int:
 ...     if n < 2:
 ...         return 1
@@ -80,7 +80,7 @@ Since we're using terminal-like interaction languages, can we directly reuse the
 
 For interactive applications, Python actually provides a standard library `cmd` that allows developers to create interactive command-line applications by defining a class that inherits from `cmd.Cmd` and implementing corresponding methods.
 
-```py
+```python linenums="1"
 import sys
 import cmd
 

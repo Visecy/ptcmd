@@ -12,7 +12,7 @@ This document provides a comprehensive overview of the core features and charact
 
 `ptcmd` eliminates boilerplate argument parsing code through the `@auto_argument` decorator and `Arg` type hints. The system automatically generates `ArgumentParser` instances based on function signatures, making command definitions both concise and type-safe.
 
-```python
+```python linenums="1"
 from ptcmd import Cmd, Arg, auto_argument
 
 class MathApp(Cmd):
@@ -34,7 +34,7 @@ class MathApp(Cmd):
 
 The above example is equivalent to:
 
-```python
+```python linenums="1"
 from ptcmd import Cmd, Arg, auto_argument
 from argparse import ArgumentParser
 
@@ -54,7 +54,7 @@ class MathApp(Cmd):
 
 If you're using a type checker, using `Arg` may be flagged as an error. You can add `# noqa: F821,F722,B002` at the end of the line to have the type checker ignore these issues. If this concerns you, you can use `Annotated` with `Argument` for a more compliant declaration, though this is more verbose and loses some automatic inference features.
 
-```python
+```python linenums="1"
 from typing import Annotated
 from ptcmd import Cmd, Argument, auto_argument
 
@@ -81,7 +81,7 @@ class MathApp(Cmd):
 
 The `Cmd` class exposes a `console` property, which is a `rich.Console` object for printing rich text. You can also use the wrapped methods `poutput`, `pwarning`, `perror`, etc., which indirectly print rich text through the `console`.
 
-```py
+```python linenums="1"
 class RichApp(Cmd):
     def do_hello(self, argv: list[str]) -> None:
         # Output using rich markup
@@ -90,7 +90,7 @@ class RichApp(Cmd):
 
 The prompt supports rich text styling using either `rich` or `prompt_toolkit`.
 
-```py
+```python linenums="1"
 class RichTextApp(Cmd):
     DEFAULT_PROMPT = "[cmd.prompt]rich[/cmd.prompt]> "
 
@@ -118,7 +118,7 @@ You can also use the `MULTI_COLUMN` completion style provided by `prompt_toolkit
 
 `ptcmd` supports adding arbitrary levels of subcommands to a command.
 
-```py
+```python linenums="1"
 from ptcmd import Cmd, auto_argument
 
 class App(Cmd):
@@ -152,7 +152,7 @@ class App(Cmd):
 
 Thanks to `prompt_toolkit`'s excellent asynchronous support, `ptcmd` natively supports asynchronous commands.
 
-```py
+```python linenums="1"
 from typing import Any, Optional
 from aiohttp import ClientSession
 from ptcmd import Cmd, auto_argument
@@ -180,3 +180,4 @@ class RequestApp(Cmd):
 
 if __name__ == "__main__":
     RequestApp().cmdloop()
+```
