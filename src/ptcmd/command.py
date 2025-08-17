@@ -393,6 +393,7 @@ def auto_argument(
     parser: Optional[ArgumentParser] = None,
     unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "autoconvert",
     parser_factory: Callable[..., ArgumentParser] = ArgumentParser,
+    help_category: Optional[str] = None,
     hidden: bool = False,
     disabled: bool = False,
 ) -> Callable[[Callable[_P, _T]], Command[_P, _T]]:

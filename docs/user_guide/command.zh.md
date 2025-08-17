@@ -1,4 +1,4 @@
-# 命令系统
+# 命令
 
 为了在兼容类似`cmd`的以手动解析为主的命令系统的同时，提供上层的命令参数自动解析功能，`ptcmd`使用了多级分层的命令系统。
 
@@ -84,120 +84,9 @@ class CommandInfoGetter(Protocol):
 
 ### 声明式参数解析
 
-`ptcmd`通过`@auto_argument`装饰器和`Arg`类型提示提供了声明式参数解析功能，消除了样板参数解析代码。该系统自动根据函数签名生成`ArgumentParser`实例，使命令定义既简洁又类型安全。
+`Command`类集成了参数解析系统，允许通过`@auto_argument`装饰器和`Arg`类型提示提供了声明式参数解析功能，消除了样板参数解析代码。
 
-#### 基础用法
-
-使用`@auto_argument`装饰器是最简单的声明式参数解析方式。它会自动分析函数的参数签名，并创建相应的`ArgumentParser`实例：
-
-```python linenums="1"
-from ptcmd import Cmd, auto_argument
-
-class MyApp(Cmd):
-    @auto_argument
-    def do_hello(self, name: str = "World") -> None:
-        """Hello World!"""
-        self.poutput(f"Hello, {name}!")
-```
-
-在上面的例子中，`name`参数会自动转换为一个可选的位置参数，默认值为"World"。
-
-#### Arg类型提示详解
-
-对于更复杂的参数定义，可以使用`Arg`类型提示。`Arg`允许指定参数的标志、帮助文本和其他属性：
-
-```python linenums="1"
-from ptcmd import Cmd, Arg, auto_argument
-
-class MathApp(Cmd):
-    @auto_argument
-    def do_add(
-        self, 
-        x: float, 
-        y: float,
-        *,
-        verbose: Arg[bool, "-v", "--verbose", {"help": "详细输出"}] = False
-    ) -> None:
-        """两数相加"""
-        result = x + y
-        if verbose:
-            self.poutput(f"{x} + {y} = {result}")
-        else:
-            self.poutput(result)
-```
-
-`Arg`的语法格式为：`Arg[类型, 参数标志..., {参数属性}]`
-
-- 类型：参数的数据类型（如`str`、`int`、`float`、`bool`等）
-- 参数标志：参数的命令行标志（如`"-v"`、`"--verbose"`）
-- 参数属性：一个字典，包含参数的其他属性（如`help`、`choices`等）
-
-#### 参数类型和行为
-
-`ptcmd`会根据参数的类型和位置自动推断参数的行为：
-
-1. 位置参数：函数的位置参数会转换为命令行的位置参数
-2. 可选参数：使用`*`分隔的关键字参数会转换为可选参数
-3. 布尔参数：类型为`bool`的参数会自动转换为标志参数（`store_true`或`store_false`）
-4. 默认值：参数的默认值会传递给`ArgumentParser`
-
-```python linenums="1"
-@auto_argument
-def do_example(
-    self,
-    positional: str,                    # 位置参数
-    optional: int = 10,                 # 带默认值的位置参数
-    *,
-    flag: Arg[bool] = False,            # 布尔标志参数
-    option: Arg[str, "--option"] = "default"  # 可选参数
-) -> None:
-    pass
-```
-
-#### Literal类型与自动choices
-
-当使用`Literal`类型时，`ptcmd`会自动将字面值设置为参数的可选项：
-
-```python linenums="1"
-from typing import Literal
-from ptcmd import Cmd, auto_argument
-
-class App(Cmd):
-    @auto_argument
-    def do_set_level(
-        self, 
-        level: Literal["debug", "info", "warning", "error"]
-    ) -> None:
-        """设置日志级别"""
-        self.poutput(f"日志级别设置为: {level}")
-```
-
-在上面的例子中，`level`参数会自动具有`choices=["debug", "info", "warning", "error"]`属性。
-
-#### 与Annotated的兼容用法
-
-如果类型检查器对`Arg`语法报错，可以使用标准的`Annotated`和`Argument`：
-
-```python linenums="1"
-from typing import Annotated
-from ptcmd import Cmd, Argument, auto_argument
-
-class MathApp(Cmd):
-    @auto_argument
-    def do_add(
-        self, 
-        x: float, 
-        y: float,
-        *,
-        verbose: Annotated[bool, Argument("-v", "--verbose", action="store_true")] = False
-    ) -> None:
-        """两数相加"""
-        result = x + y
-        if verbose:
-            self.poutput(f"{x} + {y} = {result}")
-        else:
-            self.poutput(result)
-```
+参数解析相关内容参考[参数解析系统](./argument.md)。
 
 ### 任意多级子命令
 
@@ -295,6 +184,7 @@ flowchart BT
 ```
 
 核心机制：
+
 - **反向引用**：每个子命令实例仅保存对其直接父命令的引用
 - **动态构建**：命令树在解析过程中自然形成，无需预定义结构
 - **路径重建**：通过递归访问`_parent`属性可重建完整调用路径
@@ -322,6 +212,98 @@ flowchart LR
 
 关键价值在于：**充分利用标准解析结果**，通过叶节点重建执行路径后正向执行。系统不干预`argparse`的解析过程，仅在解析完成后注入执行逻辑，既保持与标准库的兼容性，又实现了复杂的命令结构支持。
 
+## 帮助
 
+ptcmd 系统提供两种互补的帮助信息机制，分别服务于不同场景：
 
-## 帮助信息
+### ArgumentParser 内置帮助系统
+
+这是标准的命令行帮助系统，通过 `-h`/`--help` 参数触发，提供详细的命令参数信息：
+
+#### 基本用法
+```
+command -h
+```
+
+#### 工作原理
+- 由 Python 标准库 `argparse` 模块提供
+- 自动解析命令参数结构并生成格式化的帮助信息
+- 详细显示:
+  - 命令描述 (ArgumentParser 的 description 参数)
+  - 所有可用参数及其说明
+  - 参数类型、默认值和约束
+  - 子命令列表 (如有)
+
+#### 配置方式
+通过 ArgumentParser 对象配置帮助内容:
+```python
+_hello_parser = ArgumentParser(
+    "hello", 
+    description="问候用户。使用 'hello [name]' 指定名称",
+    epilog="更多示例请参考文档"
+)
+
+@set_info(argparser=_hello_parser)
+def do_hello(self, argv: list[str]) -> None:
+    ...
+```
+
+#### 多级子命令支持
+- `server -h` 显示 server 命令及其子命令的概览
+- `server start -h` 显示 start 子命令的详细参数信息
+
+### help 命令
+
+这是 ptcmd 提供的高级命令帮助系统，通过 `help` 命令触发，提供更友好的交互式帮助：
+
+#### 基本用法
+```
+help            # 显示所有可用命令概览
+help command    # 显示特定命令的简要说明
+help command -v # 显示特定命令的详细参数说明
+?               # 等同于 help
+?command        # 等同于 help command
+```
+
+#### 帮助信息来源
+ptcmd 的 help 命令从以下位置获取信息:
+
+1. **命令文档字符串**:
+   ```python
+   def do_hello(self, argv: list[str]) -> None:
+       """问候用户。使用 'hello [name]' 指定名称"""
+       ...
+   ```
+   这将作为 `help hello` 的简要说明
+
+2. **动态 help_<command> 方法**:
+   ```python
+   def help_hello(self) -> str:
+       """动态生成 hello 命令的帮助信息"""
+       return "当前用户: " + self.current_user + "\n用法: hello [name]"
+   ```
+   优先级高于文档字符串
+
+3. **命令元数据**:
+   ```python
+   @set_info(help_category="Greeting")
+   def do_hello(self, argv: list[str]) -> None:
+       """问候用户"""
+       ...
+   ```
+   用于组织命令分类显示
+
+#### 帮助分类与组织
+- 通过 `help_category` 参数对命令进行分组
+- 隐藏命令 (`hidden=True`) 不会在 help 输出中显示
+- 禁用命令 (`disabled=True`) 会显示但标记为不可用
+
+### 两种帮助系统的协同工作
+
+| 特性 | ArgumentParser (-h) | help 命令 |
+|------|---------------------|----------------|
+| **主要用途** | 详细参数参考 | 命令概览与快速参考 |
+| **触发方式** | `command -h` | `help` 或 `?` |
+| **内容深度** | 详细参数说明 | 简要命令描述 |
+| **动态内容** | 有限 (主要静态) | 支持动态生成 |
+| **最佳场景** | 需要了解具体参数用法时 | 浏览可用命令及基本用法时 |

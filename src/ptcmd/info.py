@@ -11,6 +11,7 @@ from types import MethodType
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, NamedTuple, Optional, Protocol, Union
 
 from prompt_toolkit.completion import Completer
+from rich.text import Text
 
 from .completer import ArgparseCompleter
 
@@ -160,7 +161,7 @@ def bind_parser(parser: ArgumentParser, cmd_name: str, cmd_ins: "BaseCmd") -> Ar
 
     # Set _print_message to use cmd_ins.poutput
     with suppress(AttributeError):
-        new_parser._print_message = lambda message, file = None: cmd_ins.poutput(message)
+        new_parser._print_message = lambda message, file = None: cmd_ins.poutput(Text(message))
 
     # Process all actions in the parser
     new_actions = []
