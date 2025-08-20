@@ -280,4 +280,19 @@ def do_convert(self, x: Annotated[int, Argument("x", type=int)], *, y: Annotated
 
 ## 独立使用参数解析
 
-参数解析
+参数解析系统提供了一系列独立的函数，用于独立使用参数解析功能。最简单的方式是使用`entrypoint`装饰器：
+
+```python linenums="1"
+from ptcmd.argument import entrypoint
+
+@entrypoint
+def main(
+    x: int,
+    *,
+    y: str = "y"
+) -> None:
+    ...
+
+if __name__ == "__main__":
+    main()  # 从sys.argv中解析参数并运行
+```

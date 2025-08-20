@@ -8,7 +8,7 @@ import copy
 from argparse import Action, ArgumentParser, _SubParsersAction
 from contextlib import suppress
 from types import MethodType
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, NamedTuple, Optional, Protocol, Union
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, NamedTuple, Optional, Protocol, TypeVar, Union
 
 from prompt_toolkit.completion import Completer
 from rich.text import Text
@@ -24,6 +24,14 @@ CommandLike = Union["CommandInfoGetter", CommandFunc]
 HelpGetterFunc = Callable[[bool], str]
 ArgparserGetterFunc = Callable[[Any], ArgumentParser]
 CompleterGetterFunc = Callable[[Any], Completer]
+
+T_CommandFunc = TypeVar(
+    "T_CommandFunc",
+    Callable[[Any, List[str]], bool],
+    Callable[[Any, List[str]], None],
+    Callable[[Any, List[str]], Coroutine[None, None, bool]],
+    Callable[[Any, List[str]], Coroutine[None, None, None]],
+)
 
 CMD_ATTR_NAME = "cmd_name"
 CMD_ATTR_ARGPARSER = "argparser"
@@ -106,8 +114,8 @@ def set_info(
     help_category: Optional[str] = None,
     hidden: bool = False,
     disabled: bool = False,
-) -> Callable[[CommandFunc], CommandFunc]:
-    def inner(func: CommandFunc) -> CommandFunc:
+) -> Callable[[T_CommandFunc], T_CommandFunc]:
+    def inner(func: T_CommandFunc) -> T_CommandFunc:
         if name is not None:
             setattr(func, CMD_ATTR_NAME, name)
         setattr(func, CMD_ATTR_ARGPARSER, argparser)

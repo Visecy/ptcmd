@@ -1,4 +1,6 @@
+import sys
 from argparse import Action, ArgumentParser, FileType, Namespace
+from functools import wraps
 from inspect import Parameter, Signature, isclass, signature
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 
@@ -379,3 +381,36 @@ def invoke_from_argv(
     parser = build_parser(func, unannotated_mode=unannotated_mode, parser_factory=parser_factory)
     ns = parser.parse_args(argv)
     return invoke_from_ns(func, ns)
+
+
+def entrypoint(
+    *,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
+    parser_factory: Callable[[], ArgumentParser] = ArgumentParser,
+) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
+    """Decorator that transforms a function into a CLI entry point.
+
+    The decorated function can be called with an optional argv parameter.
+    When argv is not provided, uses sys.argv[1:].
+
+    Example:
+        @entrypoint(unannotated_mode="autoconvert")
+        def main(path: Arg[str, "--path"]):
+            print(f"Processing {path}")
+
+        if __name__ == "__main__":
+            main()  # Uses sys.argv[1:]
+            main(["--path", "test.txt"])  # Positional argv for testing
+    """
+    def decorator(func: Callable[..., _T]) -> Callable[..., _T]:
+        @wraps(func)
+        def wrapper(argv: Optional[Sequence[str]] = None) -> _T:
+            actual_argv = argv if argv is not None else sys.argv[1:]
+            return invoke_from_argv(
+                func,
+                actual_argv,
+                unannotated_mode=unannotated_mode,
+                parser_factory=parser_factory
+            )
+        return wrapper
+    return decorator

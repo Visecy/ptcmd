@@ -1,16 +1,14 @@
 import asyncio
 import io
 from typing import Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from prompt_toolkit import PromptSession
 from prompt_toolkit.input import create_pipe_input, PipeInput
 from prompt_toolkit.output import DummyOutput
-from rich.panel import Panel
 from rich.text import Text
 
-import ptcmd
 from ptcmd import Cmd
 from ptcmd.core import CommandInfo
 
@@ -99,42 +97,59 @@ async def test_do_exit(cmd: Cmd) -> None:
     result = cmd.do_exit([])
     assert result is True
 
-def test_do_shell(cmd: Cmd) -> None:
+@pytest.mark.asyncio
+async def test_do_shell(cmd: Cmd) -> None:
     """Test shell command execution."""
-    with patch.object(ptcmd.core, "run") as mock_run:
-        mock_run.return_value.returncode = 0
-        cmd.do_shell(["echo", "hello"])
-        mock_run.assert_called_once_with("echo hello", shell=True)
+    with patch.object(asyncio, "create_subprocess_shell") as mock_subprocess:
+        mock_process = MagicMock()
+        mock_process.wait = AsyncMock(return_value=0)
+        mock_subprocess.return_value = mock_process
+        await cmd.do_shell(["echo", "hello"])
+        mock_subprocess.assert_called_once_with("echo hello", stdin=None, stdout=cmd.stdout, stderr=cmd.stdout)
 
-    with patch.object(ptcmd.core, "run") as mock_run:
-        mock_run.return_value.returncode = 0
-        cmd.do_shell([])
-        mock_run.assert_called_once_with("", shell=True)
+    with patch.object(asyncio, "create_subprocess_shell") as mock_subprocess:
+        mock_process = MagicMock()
+        mock_process.wait = AsyncMock(return_value=0)
+        mock_subprocess.return_value = mock_process
+        await cmd.do_shell([])
+        mock_subprocess.assert_called_once_with("", stdin=None, stdout=cmd.stdout, stderr=cmd.stdout)
 
 def test_help_menu_categorized(cmd: Cmd) -> None:
-    """Test categorized help menu."""
-    # Create mock command info with categories
+    """Test categorized help menu output."""
+    # Create command info with categories
     cmd1 = MagicMock(spec=CommandInfo)
     cmd1.name = "cmd1"
     cmd1.category = "Category1"
     cmd1.hidden = False
     cmd1.disabled = False
+    cmd1.cmd_func = MagicMock(__doc__="Command 1 help")
+    cmd1.argparser = None
+    cmd1.help_func = None
 
     cmd2 = MagicMock(spec=CommandInfo)
     cmd2.name = "cmd2"
     cmd2.category = "Category2"
     cmd2.hidden = False
     cmd2.disabled = False
+    cmd2.cmd_func = MagicMock(__doc__="Command 2 help")
+    cmd2.argparser = None
+    cmd2.help_func = None
 
     # Set command info
     cmd.command_info = {"cmd1": cmd1, "cmd2": cmd2}  # type: ignore
 
-    # Mock formatting methods at the class level
-    with patch.object(Cmd, '_format_help_menu') as mock_format:
-        mock_format.return_value = Panel("Menu")
+    # Capture output using console capture
+    with cmd.console.capture() as capture:
         cmd._help_menu()
-        assert mock_format.call_count == 2
+    output = capture.get()
 
-        calls = mock_format.call_args_list
-        assert calls[0][0] == ("Category1", [cmd1])
-        assert calls[1][0] == ("Category2", [cmd2])
+    # Check for category headers
+    assert "Category1" in output
+    assert "Category2" in output
+
+    # Check for command names
+    assert "cmd1" in output
+    assert "cmd2" in output
+
+    # Note: When verbose=False (default), command descriptions are not shown
+    # The test is checking the basic categorized help menu functionality
