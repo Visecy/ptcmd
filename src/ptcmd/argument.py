@@ -1,4 +1,6 @@
+import sys
 from argparse import Action, ArgumentParser, FileType, Namespace
+from functools import wraps
 from inspect import Parameter, Signature, isclass, signature
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 
@@ -19,7 +21,7 @@ class Argument:
 
     Example usage:
 
-    ```py
+    ```python linenums="1"
     # Using the Arg alias
     version: Arg[
         str,
@@ -265,17 +267,17 @@ def build_parser(
     `Annotated[..., Argument(...)]` will be converted to command-line arguments.
 
     Key features:
-    - Automatically handles positional vs optional arguments based on parameter kind
-    - Supports all standard argparse argument types and actions
-    - Provides flexible handling of unannotated parameters via unannotated_mode
-    - Preserves function docstring as parser description
+    1. Automatically handles positional vs optional arguments based on parameter kind
+    2. Supports all standard argparse argument types and actions
+    3. Provides flexible handling of unannotated parameters via unannotated_mode
+    4. Preserves function docstring as parser description
 
     :param func: The function or its signature to analyze
     :type func: Union[Callable, Signature]
     :param unannotated_mode: Determines behavior for parameters without Argument metadata:
-        - "strict": Raises TypeError (default)
-        - "autoconvert": Attempts to infer Argument from type annotation
-        - "ignore": Silently skips unannotated parameters
+        * "strict": Raises TypeError (default)
+        * "autoconvert": Attempts to infer Argument from type annotation
+        * "ignore": Silently skips unannotated parameters
     :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
     :param parser_factory: Custom factory for creating the parser instance
     :type parser_factory: Callable[..., _T_Parser]
@@ -285,7 +287,7 @@ def build_parser(
     :raises ValueError: For invalid unannotated_mode values
 
     Example:
-    ```py
+    ```python linenums="1"
     def example(
         path: Arg[str, "--path", {"help": "Input path"}],
         force: Arg[bool, "--force", {"action": "store_true"}],
@@ -367,9 +369,9 @@ def invoke_from_argv(
     :param argv: List of argument strings to parse
     :type argv: List[str]
     :param unannotated_mode: Determines behavior for parameters without Argument metadata:
-        - "strict": Raises TypeError (default)
-        - "autoconvert": Attempts to infer Argument from type annotation
-        - "ignore": Silently skips unannotated parameters
+        * "strict": Raises TypeError (default)
+        * "autoconvert": Attempts to infer Argument from type annotation
+        * "ignore": Silently skips unannotated parameters
     :type unannotated_mode: Literal["strict", "autoconvert", "ignore"]
     :param parser_factory: Custom factory for creating the parser instance
     :type parser_factory: Callable[..., _T_Parser]
@@ -379,3 +381,36 @@ def invoke_from_argv(
     parser = build_parser(func, unannotated_mode=unannotated_mode, parser_factory=parser_factory)
     ns = parser.parse_args(argv)
     return invoke_from_ns(func, ns)
+
+
+def entrypoint(
+    *,
+    unannotated_mode: Literal["strict", "autoconvert", "ignore"] = "strict",
+    parser_factory: Callable[[], ArgumentParser] = ArgumentParser,
+) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
+    """Decorator that transforms a function into a CLI entry point.
+
+    The decorated function can be called with an optional argv parameter.
+    When argv is not provided, uses sys.argv[1:].
+
+    Example:
+        @entrypoint(unannotated_mode="autoconvert")
+        def main(path: Arg[str, "--path"]):
+            print(f"Processing {path}")
+
+        if __name__ == "__main__":
+            main()  # Uses sys.argv[1:]
+            main(["--path", "test.txt"])  # Positional argv for testing
+    """
+    def decorator(func: Callable[..., _T]) -> Callable[..., _T]:
+        @wraps(func)
+        def wrapper(argv: Optional[Sequence[str]] = None) -> _T:
+            actual_argv = argv if argv is not None else sys.argv[1:]
+            return invoke_from_argv(
+                func,
+                actual_argv,
+                unannotated_mode=unannotated_mode,
+                parser_factory=parser_factory
+            )
+        return wrapper
+    return decorator

@@ -1,15 +1,11 @@
 import sys
-from ptcmd import Cmd
-from typing import List
+from ptcmd import Cmd, auto_argument
 
 
 class MyApp(Cmd):
-    def do_hello(self, argv: List[str]) -> None:
+    @auto_argument
+    def do_hello(self, name: str = "World") -> None:
         """Hello World!"""
-        if argv:
-            name = argv[0]
-        else:
-            name = "World"
         self.poutput(f"Hello, {name}!")
 
 

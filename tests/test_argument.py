@@ -1,11 +1,13 @@
 import argparse
+import sys
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Tuple
+from unittest.mock import patch
 
 import pytest
 from typing_extensions import Annotated
 
-from ptcmd.argument import Arg, Argument, IgnoreArg, build_parser, get_argument, invoke_from_argv, invoke_from_ns
+from ptcmd.argument import Arg, Argument, IgnoreArg, build_parser, get_argument, invoke_from_argv, invoke_from_ns, entrypoint
 
 
 def test_argument() -> None:
@@ -163,3 +165,23 @@ def test_skip_argument() -> None:
     # Should have no arguments besides help
     assert len(parser._actions) == 1  # Only the help action
     assert parser._actions[0].option_strings == ["-h", "--help"]
+
+
+def test_entrypoint_basic() -> None:
+    """Test basic functionality of the entrypoint decorator."""
+    @entrypoint(unannotated_mode="autoconvert")
+    def main(
+        *,
+        path: Arg[str, "--path"],  # noqa: F821,B002
+        force: bool = False
+    ) -> Tuple[str, bool]:
+        return path, force
+
+    # Test with explicit argv
+    result = main(argv=["--path", "test.txt", "--force"])
+    assert result == ("test.txt", True)
+
+    # Test with sys.argv simulation
+    with patch.object(sys, 'argv', ['script.py', '--path', 'default.txt']):
+        result = main()
+        assert result == ("default.txt", False)

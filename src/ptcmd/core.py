@@ -1,13 +1,14 @@
 import asyncio
+from contextlib import suppress
 import pydoc
 import shlex
+import signal
 import sys
 import warnings
 from abc import ABCMeta
 from argparse import _StoreAction
 from asyncio import iscoroutine
 from collections import defaultdict
-from subprocess import run
 from typing import (
     Any,
     Callable,
@@ -35,7 +36,6 @@ from prompt_toolkit.shortcuts.prompt import CompleteStyle, PromptSession
 from pygments.lexers.shell import BashLexer
 from rich.columns import Columns
 from rich.console import Console
-from rich.layout import Layout
 from rich.text import Text
 from rich.panel import Panel
 from rich.style import Style
@@ -499,7 +499,8 @@ class _TopicAction(_StoreAction):
         cmd = get_cmd_ins(self)
         if cmd is None:  # pragma: no cover
             return
-        return cmd.get_visible_commands()
+        help_topics = list(cmd._help_topics().keys()) if isinstance(cmd, Cmd) else []
+        return cmd.get_visible_commands() + help_topics
 
     @choices.setter
     def choices(self, _: Any) -> None:
@@ -585,7 +586,7 @@ class Cmd(BaseCmd):
         self.undoc_header = undoc_header
         self.nohelp = nohelp
 
-    @auto_argument
+    @auto_argument(help_category="ptcmd.builtin")
     def do_help(
         self,
         topic: Arg[Optional[str], {"action": _TopicAction, "help": "Command or topic for help"}] = None,  # noqa: F821,F722,B002
@@ -633,14 +634,26 @@ class Cmd(BaseCmd):
         else:
             # Categories found, Organize all commands by category
             cmds_doc = [info for info in self.get_visible_command_info() if not info.category and info not in cmds_undoc]
-            layout = Layout()
-            layout.split_column(
-                *(
-                    Layout(self._format_help_menu(category, cmds_cats[category], verbose=verbose))
-                    for category in sorted(cmds_cats.keys())
-                )
-            )
-            self.poutput(Panel(layout, title=self.doc_header))
+
+            # Create a list of renderable objects for each category
+            category_contents = []
+            for category in sorted(cmds_cats.keys()):
+                category_contents.append(Text(category, style="bold"))
+                category_contents.append(self._get_help_content(category, cmds_cats[category], verbose=verbose))
+                category_contents.append(Text(""))  # Add spacing between categories
+
+            # # Add uncategorized commands if they exist
+            # if cmds_doc:
+            #     category_contents.append(Text(self.default_category, style="bold"))
+            #     category_contents.append(self._get_help_content(self.default_category, cmds_doc, verbose=verbose))
+            #     category_contents.append(Text(""))  # Add spacing
+
+            self.poutput(Panel(
+                Columns(category_contents[:-1]),  # Remove the last empty text for better spacing
+                title=self.doc_header,
+                title_align="left",
+                style="cmd.help.doc",
+            ))
             if cmds_doc:
                 self.poutput(self._format_help_menu(self.default_category, cmds_doc, verbose=verbose, style="cmd.help.doc"))
             self.poutput(
@@ -697,6 +710,30 @@ class Cmd(BaseCmd):
         else:
             return self.nohelp % (cmd_info.name,)
 
+    def _get_help_content(self, title: str, cmds_info: List[CommandInfo], *, verbose: bool = False) -> Columns:
+        """Return help content without Panel wrapper.
+
+        :param title: The title for the help section
+        :type title: str
+        :param cmds_info: List of command info objects
+        :type cmds_info: List[CommandInfo]
+        :param verbose: If True, show more detailed help
+        :type verbose: bool
+        :return: Columns containing the help content
+        :rtype: Columns
+        """
+        cmds_info.sort(key=lambda info: info.name)
+        return Columns(
+            [
+                Text.from_markup(f"[cmd.help.name]{info.name}[/cmd.help.name] - ").append_text(
+                    Text.from_ansi(self._format_help_text(info))
+                )
+                if verbose
+                else f"[cmd.help.name]{info.name}[/cmd.help.name]"
+                for info in cmds_info
+            ]
+        )
+
     def _help_topics(self) -> Dict[str, List[CommandInfo]]:
         cmds_cats = defaultdict(list)
         for info in self.get_visible_command_info():
@@ -704,15 +741,29 @@ class Cmd(BaseCmd):
                 cmds_cats[info.category].append(info)
         return cmds_cats
 
-    @set_info("exit")
+    @set_info("exit", help_category="ptcmd.builtin")
     def do_exit(self, argv: List[str]) -> bool:
         """Exit the command loop"""
         return True
 
-    @set_info("shell", hidden=True)
-    def do_shell(self, argv: List[str]) -> None:
+    @set_info("shell", help_category="ptcmd.builtin", hidden=True)
+    async def do_shell(self, argv: List[str]) -> None:
         """Run a shell command"""
         cmd = " ".join(argv)
-        ret = run(cmd, shell=True)
-        if ret.returncode != 0:
+        loop = asyncio.get_running_loop()
+        with suppress(NotImplementedError):
+            loop.add_signal_handler(signal.SIGINT, lambda: None)
+        try:
+            ret = await asyncio.create_subprocess_shell(
+                cmd,
+                stdin=None,
+                stdout=self.stdout,
+                stderr=self.stdout,
+                # start_new_session=True
+            )
+            returncode = await ret.wait()
+        finally:
+            with suppress(NotImplementedError):
+                loop.remove_signal_handler(signal.SIGINT)
+        if returncode != 0:
             self.perror(f"Command failed with exit code {ret.returncode}")

@@ -34,13 +34,15 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
 [project.optional-dependencies]
 lint = ["ruff>=0.9.0"]
-dev = ["ptcmd[lint]", "pytest>=6.0.0", "pytest-asyncio>=0.20.0", "coverage>=7.2.0"]
+doc = ["mkdocs>=1.6.0", "mkdocs-material>=9.0.0", "mkdocs-awesome-nav>=3.0.0", "mkdocs-static-i18n>=1.2.0", "mkdocs-mermaid2-plugin>=1.1.0"]
+dev = ["ptcmd[lint]", "build>=1.2.0", "pytest>=6.0.0", "pytest-asyncio>=0.20.0", "coverage>=7.2.0"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -50,7 +52,7 @@ version-file = "src/ptcmd/version.py"
 
 [tool.hatch.metadata.hooks.vcs.urls]
 Homepage = "https://github.com/Visecy/ptcmd"
-source_archive = "https://github.com/org/repo/archive/{commit_hash}.zip"
+source_archive = "https://github.com/Visecy/ptcmd/archive/{commit_hash}.zip"
 
 [tool.ruff]
 line-length = 127

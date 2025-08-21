@@ -1,0 +1,15 @@
+nav:
+  - Overview:
+    - index.md
+    - interactive_cli.md
+    - feature.md
+    - start.md
+  - User Guide:
+    - user_guide/index.md
+    - user_guide/core.md
+    - user_guide/command.md
+    - user_guide/argument.md
+  - Examples: https://github.com/Visecy/ptcmd/tree/master/examples
+  - API Reference:
+    - "api/index.md"
+    - "api/*"
