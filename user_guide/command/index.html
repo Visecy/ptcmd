@@ -1,0 +1,1119 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="https://visecy.github.io/ptcmd/user_guide/command/" rel="canonical"/>
+<link href="../core/" rel="prev"/>
+<link href="../argument/" rel="next"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.6.15" name="generator"/>
+<title>Commands - ptcmd</title>
+<link href="../../assets/stylesheets/main.342714a4.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#commands">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="ptcmd" class="md-header__button md-logo" data-md-component="logo" href="../.." title="ptcmd">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            ptcmd
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Commands
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<div class="md-header__option">
+<div class="md-select">
+<button aria-label="Select language" class="md-header__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+</button>
+<div class="md-select__inner">
+<ul class="md-select__list">
+<li class="md-select__item">
+<a class="md-select__link" href="./" hreflang="en">
+              English
+            </a>
+</li>
+<li class="md-select__item">
+<a class="md-select__link" href="../../zh/user_guide/command/" hreflang="zh">
+              中文
+            </a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+<div class="md-search__suggest" data-md-component="search-suggest"></div>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Visecy/ptcmd" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../..">
+          
+  
+  
+    
+  
+  Overview
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../">
+          
+  
+  
+    
+  
+  User Guide
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="https://github.com/Visecy/ptcmd/tree/master/examples">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../api/">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="ptcmd" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="ptcmd">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    ptcmd
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Visecy/ptcmd" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Overview
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_1_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_1">
+<span class="md-nav__icon md-icon"></span>
+            Overview
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../interactive_cli/">
+<span class="md-ellipsis">
+    What is an Interactive Command-Line Application
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../feature/">
+<span class="md-ellipsis">
+    Features
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../start/">
+<span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    User Guide
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../core/">
+<span class="md-ellipsis">
+    Core Framework - BaseCmd/Cmd
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Commands
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Commands
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-metadata">
+<span class="md-ellipsis">
+      Command Metadata
+    </span>
+</a>
+<nav aria-label="Command Metadata" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-information-collection">
+<span class="md-ellipsis">
+      Command Information Collection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setting-command-information">
+<span class="md-ellipsis">
+      Setting Command Information
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generic-command-wrapper-command">
+<span class="md-ellipsis">
+      Generic Command Wrapper — Command
+    </span>
+</a>
+<nav aria-label="Generic Command Wrapper — Command" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#declarative-argument-parsing">
+<span class="md-ellipsis">
+      Declarative Argument Parsing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#arbitrary-multi-level-subcommands">
+<span class="md-ellipsis">
+      Arbitrary Multi-level Subcommands
+    </span>
+</a>
+<nav aria-label="Arbitrary Multi-level Subcommands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-subcommand-usage">
+<span class="md-ellipsis">
+      Basic Subcommand Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-level-nested-subcommands">
+<span class="md-ellipsis">
+      Multi-level Nested Subcommands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-principles">
+<span class="md-ellipsis">
+      Implementation Principles
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-system">
+<span class="md-ellipsis">
+      Help System
+    </span>
+</a>
+<nav aria-label="Help System" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#argumentparser-built-in-help-system">
+<span class="md-ellipsis">
+      ArgumentParser Built-in Help System
+    </span>
+</a>
+<nav aria-label="ArgumentParser Built-in Help System" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-usage">
+<span class="md-ellipsis">
+      Basic Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-principle">
+<span class="md-ellipsis">
+      Working Principle
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration">
+<span class="md-ellipsis">
+      Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-level-subcommand-support">
+<span class="md-ellipsis">
+      Multi-level Subcommand Support
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-command">
+<span class="md-ellipsis">
+      help Command
+    </span>
+</a>
+<nav aria-label="help Command" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-usage_1">
+<span class="md-ellipsis">
+      Basic Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-information-sources">
+<span class="md-ellipsis">
+      Help Information Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-categorization-and-organization">
+<span class="md-ellipsis">
+      Help Categorization and Organization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#coordination-between-help-systems">
+<span class="md-ellipsis">
+      Coordination Between Help Systems
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../argument/">
+<span class="md-ellipsis">
+    Argument Parsing
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="https://github.com/Visecy/ptcmd/tree/master/examples">
+<span class="md-ellipsis">
+    Examples
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../api/">
+<span class="md-ellipsis">
+    API Reference
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/argument/">
+<span class="md-ellipsis">
+    ptcmd.argument
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/command/">
+<span class="md-ellipsis">
+    ptcmd.command
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/completer/">
+<span class="md-ellipsis">
+    ptcmd.completer
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/core/">
+<span class="md-ellipsis">
+    ptcmd.core
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api/info/">
+<span class="md-ellipsis">
+    ptcmd.info
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-metadata">
+<span class="md-ellipsis">
+      Command Metadata
+    </span>
+</a>
+<nav aria-label="Command Metadata" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-information-collection">
+<span class="md-ellipsis">
+      Command Information Collection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setting-command-information">
+<span class="md-ellipsis">
+      Setting Command Information
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generic-command-wrapper-command">
+<span class="md-ellipsis">
+      Generic Command Wrapper — Command
+    </span>
+</a>
+<nav aria-label="Generic Command Wrapper — Command" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#declarative-argument-parsing">
+<span class="md-ellipsis">
+      Declarative Argument Parsing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#arbitrary-multi-level-subcommands">
+<span class="md-ellipsis">
+      Arbitrary Multi-level Subcommands
+    </span>
+</a>
+<nav aria-label="Arbitrary Multi-level Subcommands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-subcommand-usage">
+<span class="md-ellipsis">
+      Basic Subcommand Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-level-nested-subcommands">
+<span class="md-ellipsis">
+      Multi-level Nested Subcommands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-principles">
+<span class="md-ellipsis">
+      Implementation Principles
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-system">
+<span class="md-ellipsis">
+      Help System
+    </span>
+</a>
+<nav aria-label="Help System" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#argumentparser-built-in-help-system">
+<span class="md-ellipsis">
+      ArgumentParser Built-in Help System
+    </span>
+</a>
+<nav aria-label="ArgumentParser Built-in Help System" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-usage">
+<span class="md-ellipsis">
+      Basic Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#working-principle">
+<span class="md-ellipsis">
+      Working Principle
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration">
+<span class="md-ellipsis">
+      Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#multi-level-subcommand-support">
+<span class="md-ellipsis">
+      Multi-level Subcommand Support
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-command">
+<span class="md-ellipsis">
+      help Command
+    </span>
+</a>
+<nav aria-label="help Command" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-usage_1">
+<span class="md-ellipsis">
+      Basic Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-information-sources">
+<span class="md-ellipsis">
+      Help Information Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#help-categorization-and-organization">
+<span class="md-ellipsis">
+      Help Categorization and Organization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#coordination-between-help-systems">
+<span class="md-ellipsis">
+      Coordination Between Help Systems
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="commands">Commands</h1>
+<p>To provide automatic command parameter parsing while maintaining compatibility with <code>cmd</code>-style manual parsing systems, <code>ptcmd</code> employs a multi-level hierarchical command system.</p>
+<h2 id="command-metadata">Command Metadata</h2>
+<p>Command metadata is the command information directly used by the <code>BaseCmd</code> and <code>Cmd</code> classes:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">CommandInfo</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">cmd_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">Any</span><span class="p">]</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">help_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">HelpGetterFunc</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="n">category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">completer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Completer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="n">argparser</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArgumentParser</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>    <span class="n">disabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__cmd_info__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd_ins</span><span class="p">:</span> <span class="s2">"BaseCmd"</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"CommandInfo"</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>        <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="command-information-collection">Command Information Collection</h3>
+<p>Since command names, handler functions, and other metadata depend on the <code>Cmd</code> instance's configuration or require direct binding to the instance, command information collection occurs during the final stage of <code>Cmd</code> instance initialization.</p>
+<p>The command information collection logic works as follows:</p>
+<pre class="mermaid"><code>flowchart TD
+    G[BaseCmd Instantiation] --&gt; H{Iterate through __commands__ set}
+    H --&gt; J[Call build_command_info for each command]
+    J --&gt; K{Command Type Check}
+    K --&gt;|Command Instance| L[Call command's __cmd_info__ method]
+    K --&gt;|Regular Function| M[Retrieve command information from function attributes]
+    L --&gt; N[Generate CommandInfo object]
+    M --&gt; N
+    N --&gt; O[Store in command_info dictionary]
+    O --&gt; H
+</code></pre>
+<ul>
+<li>If a <code>__cmd_info__</code> method exists, it is called to retrieve command information</li>
+<li>Otherwise, command information is retrieved from function attributes</li>
+</ul>
+<h3 id="setting-command-information">Setting Command Information</h3>
+<p>You can manually set command information using the <code>set_info</code> decorator provided by the <code>ptcmd.info</code> module:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">argparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgumentParser</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ptcmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cmd</span><span class="p">,</span> <span class="n">set_info</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">Cmd</span><span class="p">):</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>    <span class="n">_hello_parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>    <span class="n">_hello_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"World"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Name to greet"</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>    <span class="nd">@set_info</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"hi"</span><span class="p">,</span> <span class="n">help_category</span><span class="o">=</span><span class="s2">"Greeting"</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="nd">@set_info</span><span class="p">(</span><span class="n">argparser</span><span class="o">=</span><span class="n">_hello_parser</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>        <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<p>Alternatively, you can create an instance that implements the <code>__cmd_info__</code> method to customize the returned command information. The relevant Protocol definition is:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span>
+<span class="normal"><a href="#__codelineno-2-6">6</a></span>
+<span class="normal"><a href="#__codelineno-2-7">7</a></span>
+<span class="normal"><a href="#__codelineno-2-8">8</a></span>
+<span class="normal"><a href="#__codelineno-2-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">CommandInfoGetter</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">__cmd_info__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd_ins</span><span class="p">:</span> <span class="s2">"BaseCmd"</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CommandInfo</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">        </span><span class="sd">"""Get the command information for this command.</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="sd">        :param cmd_ins: The instance of the `cmd` class</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="sd">        :type cmd_ins: "BaseCmd"</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="sd">        :return: The command information</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="sd">        """</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>        <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="generic-command-wrapper-command">Generic Command Wrapper — Command</h2>
+<p>While manually setting command information provides greater control, we typically prefer a simpler approach for defining standard commands.</p>
+<p><code>Command</code> is a generic command wrapper class that implements the <code>__cmd_info__</code> method, allowing command information to be set automatically or manually. Compared to directly using <code>set_info</code>, the <code>Command</code> class provides the following features:</p>
+<h3 id="declarative-argument-parsing">Declarative Argument Parsing</h3>
+<p>The <code>Command</code> class integrates the argument parsing system, enabling declarative argument parsing through the <code>@auto_argument</code> decorator and <code>Arg</code> type hints, eliminating boilerplate parameter parsing code.</p>
+<p>For more information on argument parsing, see <a href="../argument/">Argument Parsing System</a>.</p>
+<h3 id="arbitrary-multi-level-subcommands">Arbitrary Multi-level Subcommands</h3>
+<p><code>ptcmd</code> supports adding arbitrary levels of subcommands to a command, making it simple to build complex command hierarchies.</p>
+<h4 id="basic-subcommand-usage">Basic Subcommand Usage</h4>
+<p>Subcommands can be added to a command using the <code>add_subcommand</code> method:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ptcmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cmd</span><span class="p">,</span> <span class="n">auto_argument</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">Cmd</span><span class="p">):</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>    <span class="nd">@auto_argument</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_server</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="w">        </span><span class="sd">"""Server management"""</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a>    <span class="nd">@do_server</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"start"</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">server_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="w">        </span><span class="sd">"""Start the server"""</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">poutput</span><span class="p">(</span><span class="s2">"Server started"</span><span class="p">)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>    <span class="nd">@do_server</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"stop"</span><span class="p">)</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">server_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a><span class="w">        </span><span class="sd">"""Stop the server"""</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">poutput</span><span class="p">(</span><span class="s2">"Server stopped"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>In the example above, <code>do_server</code> is the main command, while <code>server_start</code> and <code>server_stop</code> are its subcommands. Users can invoke these subcommands via <code>server start</code> and <code>server stop</code>.</p>
+<h4 id="multi-level-nested-subcommands">Multi-level Nested Subcommands</h4>
+<p><code>ptcmd</code> supports arbitrary levels of subcommand nesting:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span>
+<span class="normal"><a href="#__codelineno-4-18">18</a></span>
+<span class="normal"><a href="#__codelineno-4-19">19</a></span>
+<span class="normal"><a href="#__codelineno-4-20">20</a></span>
+<span class="normal"><a href="#__codelineno-4-21">21</a></span>
+<span class="normal"><a href="#__codelineno-4-22">22</a></span>
+<span class="normal"><a href="#__codelineno-4-23">23</a></span>
+<span class="normal"><a href="#__codelineno-4-24">24</a></span>
+<span class="normal"><a href="#__codelineno-4-25">25</a></span>
+<span class="normal"><a href="#__codelineno-4-26">26</a></span>
+<span class="normal"><a href="#__codelineno-4-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ptcmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cmd</span><span class="p">,</span> <span class="n">auto_argument</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">Cmd</span><span class="p">):</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="nd">@auto_argument</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_server</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="w">        </span><span class="sd">"""Server management"""</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a>    <span class="nd">@do_server</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"db"</span><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="w">        </span><span class="sd">"""Database management"""</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a>    <span class="nd">@db</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"migrate"</span><span class="p">)</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="w">        </span><span class="sd">"""Perform database migration"""</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">poutput</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Migrating to version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a>    <span class="nd">@do_server</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"cache"</span><span class="p">)</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="w">        </span><span class="sd">"""Cache management"""</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21"></a>    <span class="nd">@cache</span><span class="o">.</span><span class="n">add_subcommand</span><span class="p">(</span><span class="s2">"clear"</span><span class="p">)</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">confirm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="w">        </span><span class="sd">"""Clear cache"""</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24"></a>        <span class="k">if</span> <span class="n">confirm</span><span class="p">:</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">poutput</span><span class="p">(</span><span class="s2">"Cache cleared"</span><span class="p">)</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">poutput</span><span class="p">(</span><span class="s2">"Please add --confirm to confirm the operation"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>In this example, we've created a two-level subcommand structure:
+- <code>server</code> (main command)
+  - <code>db</code> (subcommand)
+    - <code>migrate</code> (second-level subcommand)
+  - <code>cache</code> (subcommand)
+    - <code>clear</code> (second-level subcommand)</p>
+<p>Users can invoke these features with the following commands:
+- <code>server db migrate v1.0</code>
+- <code>server cache clear --confirm</code></p>
+<h4 id="implementation-principles">Implementation Principles</h4>
+<p>The system implements <strong>command context propagation</strong> through <code>ArgumentParser</code>'s <code>defaults</code> mechanism:</p>
+<ul>
+<li><strong>Leaf Node Binding</strong>: During subcommand parser construction, the leaf node command instance is injected into the <code>defaults</code> dictionary</li>
+<li><strong>Override Behavior</strong>: When a subcommand is triggered, it overrides the parent command's <code>defaults</code>, naturally forming a reference to the deepest command</li>
+<li><strong>Parsed Result Association</strong>: The final namespace's <code>__cmd_ins__</code> attribute directly references the leaf node command instance</li>
+</ul>
+<p>This design cleverly leverages <code>argparse</code>'s native mechanism—subcommand parsers override parent command defaults—allowing the system to directly access the terminal command execution context after standard parsing completes, without additional lookups.</p>
+<p>The system uses a <strong>lightweight reference chain</strong> to build command hierarchies:</p>
+<pre class="mermaid"><code>flowchart BT
+    F[Third-level Subcommand] --&gt;|_parent| D[Second-level Subcommand]
+    D --&gt;|_parent| B[First-level Subcommand]
+    E[Another Second-level Subcommand] --&gt;|_parent| B
+    B --&gt;|_parent| A[Root Command]
+    C[Another First-level Subcommand] --&gt;|_parent| A
+</code></pre>
+<p>Core mechanisms:</p>
+<ul>
+<li><strong>Reverse Reference</strong>: Each subcommand instance only stores a reference to its direct parent command</li>
+<li><strong>Dynamic Construction</strong>: The command tree forms naturally during parsing, without requiring predefined structure</li>
+<li><strong>Path Reconstruction</strong>: Complete invocation paths can be reconstructed by recursively accessing the <code>_parent</code> attribute</li>
+<li><strong>Low Overhead</strong>: Each command only adds a single reference relationship, avoiding centralized registries</li>
+</ul>
+<p>This design fully leverages <code>argparse</code>'s subcommand mechanism, implementing arbitrary-depth command nesting through minimal extensions.</p>
+<p>Execution flow focuses on <strong>post-parsing processing</strong>:</p>
+<pre class="mermaid"><code>flowchart LR
+    Q[argparse parsing complete] --&gt; R[Chain Reconstruction]
+    R --&gt; S[Forward Execution]
+</code></pre>
+<ol>
+<li><strong>Chain Reconstruction Phase</strong>:</li>
+<li>Retrieve the leaf node command instance from <code>__cmd_ins__</code></li>
+<li>Traverse upward through <code>_parent</code> references to build the complete command chain</li>
+<li>
+<p>Verify chain integrity and node status</p>
+</li>
+<li>
+<p><strong>Forward Execution Phase</strong>:</p>
+</li>
+<li>Reverse the command chain to root→leaf order</li>
+<li>Execute each command level sequentially, passing intermediate results</li>
+<li>Return the leaf node's final execution result</li>
+</ol>
+<p>The key value lies in: <strong>fully utilizing standard parsing results</strong>, reconstructing the execution path from the leaf node before forward execution. The system doesn't interfere with <code>argparse</code>'s parsing process, only injecting execution logic after parsing completes—maintaining compatibility with the standard library while supporting complex command structures.</p>
+<h2 id="help-system">Help System</h2>
+<p><code>ptcmd</code> provides two complementary help information mechanisms that serve different scenarios:</p>
+<h3 id="argumentparser-built-in-help-system">ArgumentParser Built-in Help System</h3>
+<p>This is the standard command-line help system, triggered by <code>-h</code>/<code>--help</code> parameters, providing detailed command parameter information:</p>
+<h4 id="basic-usage">Basic Usage</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a>command -h
+</code></pre></div>
+<h4 id="working-principle">Working Principle</h4>
+<ul>
+<li>Provided by Python's standard library <code>argparse</code> module</li>
+<li>Automatically parses command parameter structure and generates formatted help information</li>
+<li>Displays:</li>
+<li>Command description (from ArgumentParser's description parameter)</li>
+<li>All available parameters and their explanations</li>
+<li>Parameter types, default values, and constraints</li>
+<li>Subcommand list (if applicable)</li>
+</ul>
+<h4 id="configuration">Configuration</h4>
+<p>Configure help content through the ArgumentParser object:
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-6-1" id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="n">_hello_parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span>
+<a href="#__codelineno-6-2" id="__codelineno-6-2" name="__codelineno-6-2"></a>    <span class="s2">"hello"</span><span class="p">,</span> 
+<a href="#__codelineno-6-3" id="__codelineno-6-3" name="__codelineno-6-3"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">"Greet users. Use 'hello [name]' to specify a name"</span><span class="p">,</span>
+<a href="#__codelineno-6-4" id="__codelineno-6-4" name="__codelineno-6-4"></a>    <span class="n">epilog</span><span class="o">=</span><span class="s2">"See documentation for more examples"</span>
+<a href="#__codelineno-6-5" id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="p">)</span>
+<a href="#__codelineno-6-6" id="__codelineno-6-6" name="__codelineno-6-6"></a>
+<a href="#__codelineno-6-7" id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="nd">@set_info</span><span class="p">(</span><span class="n">argparser</span><span class="o">=</span><span class="n">_hello_parser</span><span class="p">)</span>
+<a href="#__codelineno-6-8" id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">do_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a href="#__codelineno-6-9" id="__codelineno-6-9" name="__codelineno-6-9"></a>    <span class="o">...</span>
+</code></pre></div></p>
+<h4 id="multi-level-subcommand-support">Multi-level Subcommand Support</h4>
+<ul>
+<li><code>server -h</code> displays an overview of the server command and its subcommands</li>
+<li><code>server start -h</code> displays detailed parameter information for the start subcommand</li>
+</ul>
+<h3 id="help-command">help Command</h3>
+<p>This is the advanced command help system provided by <code>ptcmd</code>, triggered by the <code>help</code> command, offering a more user-friendly interactive help experience:</p>
+<h4 id="basic-usage_1">Basic Usage</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-7-1" id="__codelineno-7-1" name="__codelineno-7-1"></a>help            # Display overview of all available commands
+<a href="#__codelineno-7-2" id="__codelineno-7-2" name="__codelineno-7-2"></a>help command    # Display brief description of a specific command
+<a href="#__codelineno-7-3" id="__codelineno-7-3" name="__codelineno-7-3"></a>help command -v # Display detailed parameter information for a specific command
+<a href="#__codelineno-7-4" id="__codelineno-7-4" name="__codelineno-7-4"></a>?               # Equivalent to help
+<a href="#__codelineno-7-5" id="__codelineno-7-5" name="__codelineno-7-5"></a>?command        # Equivalent to help command
+</code></pre></div>
+<h4 id="help-information-sources">Help Information Sources</h4>
+<p>The <code>ptcmd</code> help command retrieves information from the following locations:</p>
+<ol>
+<li>
+<p><strong>Command Docstrings</strong>:
+   <div class="highlight"><pre><span></span><code><a href="#__codelineno-8-1" id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">do_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a href="#__codelineno-8-2" id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="w">    </span><span class="sd">"""Greet users. Use 'hello [name]' to specify a name"""</span>
+<a href="#__codelineno-8-3" id="__codelineno-8-3" name="__codelineno-8-3"></a>    <span class="o">...</span>
+</code></pre></div>
+   This will serve as the brief description for <code>help hello</code></p>
+</li>
+<li>
+<p><strong>Dynamic help_<command/> Methods</strong>:
+   <div class="highlight"><pre><span></span><code><a href="#__codelineno-9-1" id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">help_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a href="#__codelineno-9-2" id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="w">    </span><span class="sd">"""Dynamically generate help information for hello command"""</span>
+<a href="#__codelineno-9-3" id="__codelineno-9-3" name="__codelineno-9-3"></a>    <span class="k">return</span> <span class="s2">"Current user: "</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Usage: hello [name]"</span>
+</code></pre></div>
+   Takes precedence over docstrings</p>
+</li>
+<li>
+<p><strong>Command Metadata</strong>:
+   <div class="highlight"><pre><span></span><code><a href="#__codelineno-10-1" id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="nd">@set_info</span><span class="p">(</span><span class="n">help_category</span><span class="o">=</span><span class="s2">"Greeting"</span><span class="p">)</span>
+<a href="#__codelineno-10-2" id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">do_hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a href="#__codelineno-10-3" id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="w">    </span><span class="sd">"""Greet users"""</span>
+<a href="#__codelineno-10-4" id="__codelineno-10-4" name="__codelineno-10-4"></a>    <span class="o">...</span>
+</code></pre></div>
+   Used for organizing command categorization</p>
+</li>
+</ol>
+<h4 id="help-categorization-and-organization">Help Categorization and Organization</h4>
+<ul>
+<li>Commands can be grouped using the <code>help_category</code> parameter</li>
+<li>Hidden commands (<code>hidden=True</code>) won't appear in help output</li>
+<li>Disabled commands (<code>disabled=True</code>) will be displayed but marked as unavailable</li>
+</ul>
+<h3 id="coordination-between-help-systems">Coordination Between Help Systems</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>ArgumentParser (-h)</th>
+<th>help Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Primary Purpose</strong></td>
+<td>Detailed parameter reference</td>
+<td>Command overview and quick reference</td>
+</tr>
+<tr>
+<td><strong>Trigger Method</strong></td>
+<td><code>command -h</code></td>
+<td><code>help</code> or <code>?</code></td>
+</tr>
+<tr>
+<td><strong>Content Depth</strong></td>
+<td>Detailed parameter explanations</td>
+<td>Brief command descriptions</td>
+</tr>
+<tr>
+<td><strong>Dynamic Content</strong></td>
+<td>Limited (primarily static)</td>
+<td>Supports dynamic generation</td>
+</tr>
+<tr>
+<td><strong>Best Scenario</strong></td>
+<td>When detailed parameter usage is needed</td>
+<td>When browsing available commands and basic usage</td>
+</tr>
+</tbody>
+</table>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+<div class="md-copyright__highlight">
+      Copyright © 2021 - 2025 Visecy. All rights reserved.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/Visecy/ptcmd" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.indexes", "navigation.top", "search.suggest"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+<script type="module">import mermaid from "https://unpkg.com/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
+window.mermaidConfig = {default: {
+    startOnLoad: false
+}};</script></body>
+</html>
